@@ -1,0 +1,11 @@
+matplotlib==3.10.1
+numpy==2.2.5
+scikit-learn==1.6.1
+torch==2.7.0
+tqdm==4.67.1
+transformers==4.51.3
+vllm==0.9.1
+ipykernel
+pandas
+datetime
+openai
