@@ -20,11 +20,11 @@ sampling_params:
   port: 8000
   api_base: "http://localhost:{port}/v1"
   temperature: 1.0
-  min_p: 0.01
+  min_p: 0.02
   max_tokens: 1024
   stop: ["Question:", "Answer:"]
     
 critic_params:
-  model_name: "gemini-2.5-flash"
+  model_name: "gemini-2.0-flash"
   api_provider: "google"
   api_base: "https://generativelanguage.googleapis.com/v1beta/openai/"

@@ -1,4 +1,5 @@
 import os
+from typing import Dict, List
 
 from omegaconf import DictConfig, OmegaConf
 from openai import AuthenticationError, BadRequestError, OpenAI
@@ -15,10 +16,6 @@ class LLMEngine:
             model_name=llm_config.model_name,
             api_provider=llm_config.api_provider,
         )
-        print(f"LLMEngine::Model Name: {self.config.model_name}")
-        print(f"LLMEngine::API Provider: {self.config.api_provider}")
-        print(f"LLMEngine::is_instruct: {self.is_instruct}")
-        print(f"LLMEngine::is_reasoning: {self.is_reasoning}")
 
     def prepare_llm(self, model_name: str, api_provider: str):
         if api_provider == "localhost":
@@ -51,6 +48,10 @@ class LLMEngine:
         no_retry_on=(AuthenticationError, BadRequestError),
     )
     def prompt_llm(self, prompt: str):
+        assert not self.is_instruct, (
+            "Called completion query on instruct model. "
+            f"Model called: {self.config.model_name}"
+        )
         return self.client.completions.create(
             model=self.config.model_name,
             prompt=prompt,
@@ -59,4 +60,21 @@ class LLMEngine:
             stop=list(self.config.get("stop", [])),
             top_p=self.config.get("top_p", 1.0),
             extra_headers={"min_p": f"{self.config.min_p:.3f}"},
+        )
+    
+    @retry_with_exponential_backoff(
+        max_retries=20,
+        no_retry_on=(AuthenticationError, BadRequestError),
+    )
+    def prompt_llm_chat(self, messages: List[Dict[str, str]]):
+        assert self.is_instruct, (
+            "Called chat query on non-instruct model. "
+            f"Model called: {self.config.model_name}"
+        )
+        return self.client.chat.completions.create(
+            model=self.config.model_name,
+            messages=messages,
+            max_tokens=self.config.get("max_tokens", 512),
+            temperature=self.config.get("temperature", 0.0),
+            top_p=self.config.get("top_p", 1.0),
         )

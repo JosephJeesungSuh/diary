@@ -26,6 +26,20 @@ class History:
     def update(self, event: Event) -> None:
         assert isinstance(event, Event)
         self.history_list.append(event)
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "History":
+        assert isinstance(data, dict), "Data must be a dictionary."
+        history = cls()
+        for k, v in data.items():
+            if hasattr(history, k):
+                if isinstance(v, list):
+                    history.history_list = [Event(**item) for item in v]
+                else:
+                    setattr(history, k, v)
+            else:
+                raise ValueError("Unexpected key in unserializing History.")
+        return history
     
     @classmethod
     def concat(cls, h1: "History", h2: "History") -> "History":
@@ -36,3 +50,6 @@ class History:
     def __add__(self, other: "History") -> "History":
         assert isinstance(other, History)
         return self.concat(other)
+    
+    def __len__(self) -> int:
+        return len(self.history_list)

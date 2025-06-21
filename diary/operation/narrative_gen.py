@@ -28,24 +28,32 @@ def generate_narrative(
     )
     
     metadata: Dict = {
-        "cost": [],
-        "retry": 0
+        "gen_cost": [],
+        "retry": 0,
+        "critic_history": [],
     }
     n_trial: int = 0
     while n_trial < interview_params.max_trial:
         result = response_engine.prompt_llm(prompt=input_prompt)
         response = result.choices[0].text.strip()
-        metadata["cost"].append(tuple([
+        metadata["gen_cost"].append(tuple([
             result.usage.prompt_tokens,
             result.usage.completion_tokens,
+            result.usage.total_tokens,
         ]))
-        pass_critic = evaluate_narrative(
+        c_prompts, c_pass, c_usage, good = evaluate_narrative(
             engine=critic_engine,
             context=input_prompt,
             rollout=response,
             review_criterion=["all"],
+            entity=[interview_params.entity, agent_params.entity],
         )
-        if pass_critic:
+        metadata["critic_history"].append({
+            "prompts": c_prompts,
+            "pass": c_pass,
+            "usage": c_usage,
+        })
+        if good:
             break
         metadata["retry"] += 1
         n_trial += 1

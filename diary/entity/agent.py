@@ -38,10 +38,13 @@ class Agent:
         agent = cls()
         for k,v in data.items():
             if hasattr(agent, k):
-                if hasattr(agent.k, "from_dict"):
-                    setattr(agent, k, v.from_dict(v))
+                attr = getattr(agent, k)
+                if hasattr(attr, "from_dict"):
+                    setattr(agent, k, type(attr).from_dict(v))
                 else:
                     setattr(agent, k, v)
+            else:
+                raise ValueError("Unexpected key in deserializing Agent.")
         return agent
     
     def update(self, event: Event) -> None:
