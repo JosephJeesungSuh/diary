@@ -1,0 +1,182 @@
+import os
+import json
+import pathlib
+import warnings
+import multiprocessing as mp
+from datetime import datetime, timedelta
+from functools import singledispatchmethod
+from typing import Optional, Dict, List, Tuple, Union, final, Literal, Any
+
+import numpy as np
+from tqdm import tqdm
+from omegaconf import DictConfig
+
+from diary.stats.registered_ops import Operation
+from diary.entity.progress import Progress
+from diary.entity.intervention import Intervention
+from diary.entity.history import History, Event
+from diary.utils.misc_utils import class_to_dict, random_hashtag
+from diary.llm_engine.llm_engine import LLMEngine
+from diary.operation import generate_narrative
+
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.dirname(CURRENT_DIR)
+
+
+class Agent:
+    
+    def __init__(self):
+        self.id: str = random_hashtag()
+        self.history: History = History()
+        self.progress: Progress = Progress()
+        self.created_timestamp: str = datetime.now().isoformat()
+        self._assigned_to: Intervention = None
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "Agent":
+        assert isinstance(data, dict), "Data must be a dictionary."
+        agent = cls()
+        for k,v in data.items():
+            if hasattr(agent, k):
+                if hasattr(agent.k, "from_dict"):
+                    setattr(agent, k, v.from_dict(v))
+                else:
+                    setattr(agent, k, v)
+        return agent
+    
+    def update(self, event: Event) -> None:
+        assert isinstance(event, Event)
+        self.history.update(event)
+    
+    def rollout(self, **kwargs) -> None:
+        rollout_kwargs = kwargs.copy()
+        op: str = rollout_kwargs.pop("op", None)        
+        assert op in ["narrative", "identity", "diary"], (
+            f"--> Agent.rollout(): Invalid rollout operation {op}."
+        )
+        if op == "narrative":
+            continuation_prompt = rollout_kwargs.pop("continuation_prompt", [])
+            if isinstance(continuation_prompt, str):
+                continuation_prompt = [continuation_prompt]
+            for prompt in continuation_prompt:
+                query, response = generate_narrative(
+                    history=self.history,
+                    continuation_prompt=prompt,
+                    **rollout_kwargs,
+                )
+                self.update(query); self.update(response)
+        else:
+            raise NotImplementedError
+        return
+
+    @property
+    def assigned_to(self) -> Optional[Intervention]:
+        return self._assigned_to
+    
+    @assigned_to.setter
+    def assigned_to(self, intervention: Intervention):
+        assert self._assigned_to is None, (
+            "Agent already assigned to an intervention."
+        )
+        self._assigned_to = intervention    
+        
+
+class AgentCollection:
+    
+    def __init__(self, agents: List[Agent]):
+        assert isinstance(agents, list)
+        self.agents = agents
+
+    @classmethod
+    def from_dictlist(cls, data: List[Dict]) -> "AgentCollection":
+        assert isinstance(data, list)
+        agents = [Agent.from_dict(agent_data) for agent_data in data]
+        return cls(agents)
+    
+    @classmethod
+    def from_jsonl(cls, filepath: str) -> "AgentCollection":
+        assert os.path.exists(filepath), f"File {filepath} does not exist."
+        agents = []
+        with open(filepath, 'r', encoding='utf-8') as f:
+            for line_number, line in enumerate(f, 1):
+                try:
+                    data = json.loads(line)
+                    agents.append(data)
+                except json.JSONDecodeError as e:
+                    raise ValueError(f"Error decoding JSON on line {line_number}: {e}")
+        return cls.from_dictlist(agents)
+    
+    def rollout(self, **kwargs) -> None:
+        
+        rollout_kwargs = kwargs.copy()
+        n_parallel: int = rollout_kwargs.pop("n_parallel", 1)
+        response_engine: LLMEngine = LLMEngine(
+            llm_config=rollout_kwargs.pop("response_sampling_params", None)
+        )
+        critic_engine: LLMEngine = LLMEngine(
+            llm_config=rollout_kwargs.pop("critic_params", None)
+        )
+        print(f"--> AgentCollection.rollout(): initialized LLMEngine.")
+
+        def _worker(agent: Agent) -> None:
+            try:
+                agent.rollout(
+                    **rollout_kwargs,
+                    response_engine=response_engine,
+                    critic_engine=critic_engine)
+            except Exception as exc:
+                warnings.warn(
+                    f"[Agent {getattr(agent, 'id', 'N/A')}] rollout failed: {exc}"
+                )
+                return 1
+
+        with tqdm(
+            total=len(self.agents), desc="Agent Rollout",
+        ) as pbar:
+            if n_parallel <= 1:
+                for agent in self.agents:
+                    _worker(agent); pbar.update(1)
+            else:
+                with mp.pool.ThreadPool(n_parallel) as pool:
+                    for _ in pool.imap_unordered(_worker, self.agents):
+                        pbar.update(1)        
+    
+    def to_jsonl(self,
+                 filepath: Union[str, pathlib.Path]) -> None:
+        assert isinstance(filepath, (str, pathlib.Path))
+        if isinstance(filepath, str):
+            filepath = pathlib.Path(filepath)
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+        with open(filepath, 'w', encoding='utf-8') as f:
+            for agent in self.agents:
+                f.write(json.dumps(class_to_dict(agent)) + '\n')
+        return
+    
+    def shuffle(self, seed: Optional[int] = None) -> None:
+        if seed is not None:
+            np.random.seed(seed)
+            np.random.shuffle(self.agents)
+    
+    def return_stats(self, op: Operation):
+        assert isinstance(op, Operation)
+        return op.perform_on(self.agents)
+    
+    def __len__(self) -> int:
+        return len(self.agents)
+    
+    def __iter__(self):
+        for agent in self.agents:
+            yield agent
+    
+    def __getitem__(self,
+                  idx: Union[int, slice]
+                  ) -> Union["Agent", "AgentCollection"]:
+        assert isinstance(idx, (int, slice)), (
+            f"Index must be an int or slice, got {type(idx).__name__}"
+        )
+        if isinstance(idx, int):
+            return self.agents[idx]
+        if isinstance(idx, slice):
+            new = self.__class__.__new__(self.__class__)
+            new.agents = self.agents[idx]
+            return new

@@ -1,0 +1,30 @@
+question_filepath:
+  "diary/data/questions/interview_questions.json"
+
+output_filepath_template:
+  "diary_bank/narrative_gen/output_{timestamp}.jsonl"
+
+agent_params:
+  n_agent: 64
+  agent_filepath: None
+  entity: "Answer: "
+
+interview_params:
+  n_parallel: 16
+  max_trial: 8
+  entity: "Question: "
+
+sampling_params:
+  model_name: "mistralai/Mistral-Small-24B-Base-2501"
+  api_provider: "localhost"
+  port: 8000
+  api_base: "http://localhost:{port}/v1"
+  temperature: 1.0
+  min_p: 0.01
+  max_tokens: 1024
+  stop: ["Question:", "Answer:"]
+    
+critic_params:
+  model_name: "gemini-2.5-flash"
+  api_provider: "google"
+  api_base: "https://generativelanguage.googleapis.com/v1beta/openai/"
