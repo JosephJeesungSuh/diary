@@ -12,6 +12,10 @@ class Event:
     
     def format_string(self) -> str:
         return f"{self.entity}{self.action}"
+    
+    def __repr__(self) -> str:
+        return self.format_string()
+
 
 class History:
 
@@ -19,9 +23,10 @@ class History:
         self.history_list: List[Event] = []
 
     def format_string(self) -> str:
-        return "\n\n".join(
+        return "\n\n".join([
             event.format_string() for event in self.history_list
-        )
+            if event.format_string() != ""
+        ])
     
     def update(self, event: Event) -> None:
         assert isinstance(event, Event)
@@ -53,3 +58,10 @@ class History:
     
     def __len__(self) -> int:
         return len(self.history_list)
+    
+    def __repr__(self) -> str:
+        repr_str = f"History consisted of {len(self)} events\n"
+        repr_str += f"History entity list: {[e.entity for e in self.history_list]}\n"
+        repr_str += f"History " + "=" * 40 + "\n"
+        repr_str += self.format_string()
+        return repr_str

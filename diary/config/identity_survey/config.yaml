@@ -1,0 +1,29 @@
+question_filepath:
+  "diary/data/questions/identity.json"
+
+output_filepath_template:
+  "diary_bank/identity_survey/output_{timestamp}.jsonl"
+
+agent_params:
+  agent_filepath: None
+  entity: "Answer: "
+
+interview_params:
+  n_parallel: 16
+  entity: "Question: "
+
+sampling_params:
+  model_name: "mistralai/Mistral-Small-24B-Base-2501"
+  api_provider: "localhost"
+  port: 8000
+  api_base: "http://localhost:{port}/v1"
+  temperature: 1.0
+  min_p: 0.02
+  max_tokens: 1024
+  n: 64
+  stop: ["Question:", "Answer:"]
+    
+critic_params:
+  model_name: "gemini-2.0-flash"
+  api_provider: "google"
+  api_base: "https://generativelanguage.googleapis.com/v1beta/openai/"

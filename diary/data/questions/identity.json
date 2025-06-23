@@ -1,0 +1,110 @@
+[
+    {
+        "qkey": "age",
+        "question_body": "What is your age?",
+        "category": [
+            "18-24",
+            "25-34",
+            "35-44",
+            "45-54",
+            "55-64",
+            "65+"
+        ]
+    },
+    {
+        "qkey": "gender",
+        "question_body": "What is your gender?",
+        "category": [
+            "Male",
+            "Female"
+        ]
+    },
+    {
+        "qkey": "race",
+        "question_body": "Which racial or ethnic groups do you identify with?",
+        "category": [
+            "White",
+            "African American",
+            "Hispanic or Latino",
+            "Asian",
+            "Other"
+        ]
+    },
+    {
+        "qkey": "education",
+        "question_body": "What is the highest level of education you have completed?",
+        "category": [
+            "High school or lower",
+            "Some college or trade school",
+            "College degree or higher"
+        ]
+    },
+    {
+        "qkey": "cig_per_day",
+        "question_body": "How many cigarettes do you smoke per day?",
+        "category": [
+            "0",
+            "1-5",
+            "5+"
+        ]
+    },
+    {
+        "qkey": "presence_smoker",
+        "question_body": "Is there a smoker other than you in your household?",
+        "category": [
+            "Yes",
+            "No"
+        ]
+    },
+    {
+        "qkey": "fagerstrom_waking",
+        "question_body": "How soon after waking do you smoke your first cigarette?",
+        "category": [
+            "Within 5 minutes",
+            "5-30 minutes",
+            "31-60 minutes or more"
+        ]
+    },
+{
+        "qkey": "fagerstrom_forbidden_places",
+        "question_body": "Do you find it difficult to refrain from smoking in places where it is forbidden? e.g. Church, Library, etc.",
+        "category": [
+            "Yes",
+            "No"
+        ]
+    },
+    {
+        "qkey": "fagerstrom_hate",
+        "question_body": "Which cigarette would you hate to give up?",
+        "category": [
+            "The first in the morning",
+            "Any other"
+        ]
+    },
+    {
+        "qkey": "fagerstrom_cigarettes_per_day",
+        "question_body": "How many cigarettes a day do you smoke?",
+        "category": [
+            "10 or less",
+            "11 - 20",
+            "21 - 30",
+            "31 or more"
+        ]
+    },
+    {
+        "qkey": "fagerstrom_smoke_morning",
+        "question_body": "Do you smoke more frequently in the morning?",
+        "category": [
+            "Yes",
+            "No"
+        ]
+    },
+    {
+        "qkey": "fagerstrom_smoke_sick",
+        "question_body": "Do you smoke even if you are sick in bed most of the day?",
+        "category": [
+            "Yes",
+            "No"
+        ]
+    }
+]

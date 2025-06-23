@@ -1,11 +1,15 @@
+import asyncio
 import os
+import logging
 from typing import Dict, List
 
-from omegaconf import DictConfig, OmegaConf
-from openai import AuthenticationError, BadRequestError, OpenAI
+from omegaconf import DictConfig
+from openai import AuthenticationError, BadRequestError, OpenAI, AsyncOpenAI
 
 from .llm_table import LLMS
 from .backoff import retry_with_exponential_backoff
+
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
 class LLMEngine:
@@ -30,7 +34,7 @@ class LLMEngine:
             )
         else:
             if api_provider == "google":
-                self.client = OpenAI(
+                self.client = AsyncOpenAI(
                     api_key=os.environ.get("GOOGLE_API_KEY"),
                     base_url=self.config.api_base,
                 )
@@ -59,6 +63,7 @@ class LLMEngine:
             temperature=self.config.get("temperature", 0.0),
             stop=list(self.config.get("stop", [])),
             top_p=self.config.get("top_p", 1.0),
+            n=self.config.get("n", 1),
             extra_headers={"min_p": f"{self.config.min_p:.3f}"},
         )
     
@@ -77,4 +82,34 @@ class LLMEngine:
             max_tokens=self.config.get("max_tokens", 512),
             temperature=self.config.get("temperature", 0.0),
             top_p=self.config.get("top_p", 1.0),
+            n=self.config.get("n", 1),
         )
+    
+    def prompt_llm_chat_batch(self, messages_list: List):
+        assert self.is_instruct, (
+            "Called chat query on non-instruct model. "
+            f"Model called: {self.config.model_name}"
+        )
+        return asyncio.run(self._prompt_llm_chat_batch_async(messages_list))
+    
+    async def _prompt_llm_chat_batch_async(self, messages_list: List):
+        
+        @retry_with_exponential_backoff(
+            max_retries=20,
+            no_retry_on=(AuthenticationError, BadRequestError),
+        )
+        async def _single(messages):
+            return await self.client.chat.completions.create(
+                model=self.config.model_name,
+                messages=messages,
+                max_tokens=self.config.get("max_tokens", 512),
+                temperature=self.config.get("temperature", 0.0),
+                top_p=self.config.get("top_p", 1.0),
+                n=self.config.get("n", 1),
+            )
+
+        tasks = [
+            asyncio.create_task(_single(messages))
+            for messages in messages_list
+        ]
+        return await asyncio.gather(*tasks)

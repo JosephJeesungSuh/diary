@@ -1,6 +1,5 @@
 from typing import Dict, Any, Tuple
 
-from openai import OpenAI
 from omegaconf import DictConfig
 
 from diary.entity.history import Event, History
@@ -14,8 +13,8 @@ def generate_narrative(
     critic_engine: LLMEngine,
     **kwargs) -> Tuple[Event, Event]:
 
-    agent_params: Dict[str, Any] = kwargs.get("agent_params", {})
-    interview_params: Dict[str, Any] = kwargs.get("interview_params", {})
+    agent_params: DictConfig = kwargs.get("agent_params", None)
+    interview_params: DictConfig = kwargs.get("interview_params", None)
     input_prompt: str = (
         history.format_string() + "\n\n"
         + interview_params.entity + continuation_prompt + "\n\n"
@@ -48,6 +47,7 @@ def generate_narrative(
             review_criterion=["all"],
             entity=[interview_params.entity, agent_params.entity],
         )
+        print(f"Evaluation result: {"Success" if good else "Failure"}")
         metadata["critic_history"].append({
             "prompts": c_prompts,
             "pass": c_pass,

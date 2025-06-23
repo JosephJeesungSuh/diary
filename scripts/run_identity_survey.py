@@ -1,3 +1,4 @@
+# running identity survey operations on agents
 import os
 import json
 import pathlib
@@ -14,45 +15,40 @@ ROOT_DIR = os.path.dirname(CURRENT_DIR)
 
 @hydra.main(
     config_path=os.path.join(
-        ROOT_DIR, "diary", "config", "narrative_gen",
+        ROOT_DIR, "diary", "config", "identity_survey",
     ),
     config_name="config",
     version_base="1.3",
 )
 def main(cfg: DictConfig):
     
-    # initiate: load the config
     datetime_init = datetime.now().strftime("%Y%m%d_%H%M%S")
     print(f"--> main(): Running narrative generation with config: {cfg}")
+    
     with open(os.path.join(ROOT_DIR, cfg.question_filepath), "r") as f:
         questions = json.load(f)
+    qkeys = [q['qkey'] for q in questions]
+    print(f"--> main(): running survey on questions: {qkeys}")
 
-    # initialize agent collection
-    if cfg.agent_params.agent_filepath != 'None':
-        agents = AgentCollection.from_jsonl(
-            filepath=os.path.join(
-                ROOT_DIR, cfg.agent_params.agent_filepath
-            )
-        )
-    else:
-        agents = AgentCollection(
-            agents=[
-                Agent() for _ in range(cfg.agent_params.n_agent)
-            ]
-        )
+    agent_filepath = os.path.join(
+        ROOT_DIR, cfg.agent_params.agent_filepath)
+    assert os.path.exists(agent_filepath), (
+        "Agent must be providied. "
+        f"Current agent filepath: {agent_filepath}"
+    )
+    agents = AgentCollection.from_jsonl(agent_filepath)
+    print(f"--> main(): Loaded {len(agents.agents)} agents.")
+    print(agents)
     
-    # run the narrative generation on the agent collection
-    print(f"--> main(): Running narrative gen on {len(agents)} agents.")
     agents.rollout(
-        continuation_prompt=questions,
+        identity_query_prompt=questions,
         response_sampling_params=cfg.sampling_params,
         critic_params=cfg.critic_params,
         agent_params=cfg.agent_params,
         interview_params=cfg.interview_params,
-        op="narrative"
+        op="identity"
     )
 
-    # save
     output_filepath = os.path.join(
         ROOT_DIR, cfg.output_filepath_template.format(
             timestamp=datetime_init

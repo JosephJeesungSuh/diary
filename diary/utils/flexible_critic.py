@@ -4,19 +4,22 @@
 # 2. Parse the agent's response during identity survey.
 # 3. Check how many number of cigarettes the agent has smoked on the day.
 
-import re
-from typing import Optional, List, Tuple, Literal, Dict
-
-from openai import OpenAI
+from typing import Optional, List, Tuple, Literal, Dict, Union, Any
 
 from diary.llm_engine.llm_engine import LLMEngine
 
 
 CRITIC_PROMPT = {
     "evaluate_narrative": {
-        "context": "You are given the following conversation between an interviewer and a participant:\n\n",
+        "context": """You are given the following conversation (possibly multi-turn) between an interviewer and a participant:"
+========== Beginning of conversation ==========
+{conversation}
+========== End of conversation ==========""",
         "format_for_critic": {
-            "consistency": """Here is the participant's response to the interviewer's last question: {response}
+            "consistency": """Here is the participant's response to the interviewer's last question:
+========== Beginning of response ==========
+{response}
+========== End of response ==========
 
 Question: Does the response contain any comments made by a third person, outside the context of the participant's response?
 For example, if the response contains a sentence like:
@@ -34,7 +37,10 @@ However, for cases where the participant themselves are referring to other's com
 
 you should mark this as 'No.'.
 Answer strictly as 'Yes.' or 'No.' Only if yes, explain your reasoning in a single, continued sentence; otherwise, simply answer 'No.'.""",
-            "contains_code": """Here is the participant's response to the interviewer's last question: {response}
+            "contains_code": """Here is the participant's response to the interviewer's last question:
+========== Beginning of response ==========
+{response}
+========== End of response ==========
 
 Question: Does the response contain any code snippets?
 For example, if the response contains a sentence like:
@@ -45,7 +51,10 @@ For example, if the response contains a sentence like:
 
 you should mark this as 'Yes.'.
 Answer strictly as 'Yes.' or 'No.' Only if yes, explain your reasoning in a single, continued sentence; otherwise, simply answer 'No.'.""",
-            "contains_metadata": """Here is the participant's response to the interviewer's last question: {response}
+            "contains_metadata": """Here is the participant's response to the interviewer's last question:
+========== Beginning of response ==========
+{response}
+========== End of response ==========
 
 Question: Does the response contain any metadata or editor notes, i.e. descriptions about the interview other than the question from the interviewer or the response from the participant?
 For example, if the response contains a sentence like:
@@ -66,7 +75,10 @@ For example, if the response only contains snippets like:
 you should mark this as 'No.'.
 
 Answer strictly as 'Yes.' or 'No.' Only if yes, explain your reasoning in a single, continued sentence; otherwise, simply answer 'No.'.""",
-            "contains_question": """Here is the participant's response to the interviewer's last question: {response}
+            "contains_question": """Here is the participant's response to the interviewer's last question:
+========== Beginning of response ==========
+{response}
+========== End of response ==========
 
 Question: Does the response for review contain any explicit new questions that is outside the scope of the participant's response?
 For example, if the response contains a sentence like:
@@ -77,14 +89,20 @@ For example, if the response contains a sentence like:
 
 you should mark this as 'Yes.'.
 Answer strictly as 'Yes.' or 'No.' Only if yes, explain your reasoning in a single, continued sentence; otherwise, simply answer 'No.'.""",
-            "is_irrelevant": """Here is the participant's response to the interviewer's last question: {response}
+            "is_irrelevant": """Here is the participant's response to the interviewer's last question:
+========== Beginning of response ==========
+{response}
+========== End of response ==========
 
 Question: Is the response a totally irrelevant answer or COMPLETELY non-sensical?
 Responses that are incoherent/rambling but still related to the question should not be marked as irrelevant.
 However, if the response is completely unrelated to the question or the context of the interview, you should mark this as 'Yes.'.
 
 Answer strictly as 'Yes.' or 'No.' Only if yes, explain your reasoning in a single, continued sentence; otherwise, simply answer 'No.'.""",
-            "is_not_interview": """Here is the participant's response to the interviewer's last question: {response}
+            "is_not_interview": """Here is the participant's response to the interviewer's last question:
+========== Beginning of response ==========
+{response}
+========== End of response ==========
 
 Question: Is the response written in third-person or describing a non-human? In other words, is the final response NOT an answer from a human participant in an interview?
 For example, if the response is like:
@@ -96,12 +114,25 @@ For example, if the response is like:
 You should mark this as 'Yes.'.
 Answer strictly as 'Yes.' or 'No.' Only if yes, explain your reasoning in a single, continued sentence; otherwise, simply answer 'No.'.""",
         }
+    },
+    "parse_identity_survey": {
+        "context": """You are given the following question and a person's response to the question:
+========== Beginning of question ==========
+Question: {question_body}
+Available options, each separated by a newline:
+{options}
+========== End of question ==========
+========== Beginning of response ==========
+{response}
+========== End of response ==========
+Instruction: Print strictly which option the person's response corresponds to. Copy the option exactly as it is, without any additional text or explanation or modification.
+If the response does not match any of the options, strictly print '[N/A]'.""",
     }
 }
 
 
-def generate_critic_prompt(context: str,
-                           rollout: str,
+def generate_critic_prompt(context: Any,
+                           rollout: Union[str, List[str]],
                            review_criterion: List[str],
                            purpose: Literal[
                                "evaluate_narrative",
@@ -112,27 +143,44 @@ def generate_critic_prompt(context: str,
         "invalid purpose for calling critic model."
     )
     assert isinstance(review_criterion, list)
-    if review_criterion == ["all"]: # special case
-        review_criterion = list(CRITIC_PROMPT[purpose]['format_for_critic'].keys())
-    
-    context = context.strip().replace(
-        entity[0].strip(), "Interviewer:"
-    ).replace(entity[1].strip(), "Participant:")
-    assert context.endswith("Participant:")
-    context = context[:-len("Participant:")].strip()
-    
-    sys_prompt = CRITIC_PROMPT[purpose]['context'] + context
-    critic_prompts = [
-        [
-            {"role": "system", "content": sys_prompt},
-            {"role": "user", "content": (
-                CRITIC_PROMPT[purpose]['format_for_critic'][
-                    criterion].format(response=rollout)
-            )},
+
+    if purpose == "evaluate_narrative":
+        assert isinstance(rollout, str)
+        if review_criterion == ["all"]: # special case
+            review_criterion = list(CRITIC_PROMPT[purpose]['format_for_critic'].keys())
+        
+        context = context.strip().replace(
+            entity[0].strip(), "Interviewer:"
+        ).replace(entity[1].strip(), "Participant:")
+        assert context.endswith("Participant:")
+        context = context[:-len("Participant:")].strip()
+        
+        sys_prompt = CRITIC_PROMPT[purpose]['context'].format(conversation=context)
+        critic_prompts = [
+            [
+                {"role": "system", "content": sys_prompt},
+                {"role": "user", "content": (
+                    CRITIC_PROMPT[purpose]['format_for_critic'][
+                        criterion].format(response=rollout)
+                )},
+            ]
+            for criterion in review_criterion
         ]
-        for criterion in review_criterion
-    ]
-    return critic_prompts    
+        return critic_prompts
+    
+    elif purpose == "parse_identity_survey":
+        critic_prompts = [
+            [
+                {"role": "user", "content": (
+                    CRITIC_PROMPT[purpose]['context'].format(
+                        question_body=context['question_body'],
+                        options="\n".join(context['category']),
+                        response=r
+                    )
+                 )}
+            ] for r in rollout
+        ]
+        return critic_prompts
 
 
 def evaluate_narrative(engine: LLMEngine,
@@ -149,10 +197,8 @@ def evaluate_narrative(engine: LLMEngine,
     )
     critic_runs = [engine.prompt_llm_chat(p) for p in critic_prompts]
     outputs = [run.choices[0].message.content for run in critic_runs]
-    print("outputs:\n\n")
-    print(outputs)
     critic_pass = [
-        (text is not None and text.strip().lower().startswith('no'))
+        (text is not None and text.strip().lower().startswith('no.'))
         for text in outputs
     ]
     critic_usage = [
@@ -168,8 +214,34 @@ def evaluate_narrative(engine: LLMEngine,
     )
     
 
-def parse_identity_survey(self, response: str, context: str):
-    raise NotImplementedError
+def parse_identity_survey(engine: LLMEngine,
+                          context: Dict[str, Union[str, List[str]]],
+                          rollouts: List[str]) -> Tuple:
+    critic_prompts: List[List] = generate_critic_prompt(
+        context=context,
+        rollout=rollouts,
+        review_criterion=[],
+        purpose="parse_identity_survey",
+        entity=[],
+    )
+    critic_runs = engine.prompt_llm_chat_batch(critic_prompts)
+    outputs = [run.choices[0].message.content for run in critic_runs]
+    critic_usage = tuple([
+        sum(run.usage.prompt_tokens for run in critic_runs),
+        sum(run.usage.completion_tokens for run in critic_runs),
+        sum(run.usage.total_tokens for run in critic_runs),
+    ])
+    category = context['category']
+    stats: List[float] = [0.0] * len(category)
+    na_count: int = 0
+    for o in outputs:
+        if o.strip() in category:
+            stats[category.index(o.strip())] += 1.0
+        else:
+            na_count += 1
+    stats = [s/sum(stats) if sum(stats) > 0 else 0.0 for s in stats]
+    return (critic_prompts, critic_usage, stats, na_count)
+
 
 def check_n_smoked(self, response: str, context: str) -> int:
     raise NotImplementedError

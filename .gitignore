@@ -1,6 +1,7 @@
 #custom
 outputs/
 diary_bank/
+*.ipynb
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
