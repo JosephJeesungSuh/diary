@@ -1,0 +1,10 @@
+[
+    {
+        "qkey": "is_smoker",
+        "question_body": "Do you currently smoke cigarettes?",
+        "category": [
+            "Yes",
+            "No"
+        ]
+    }
+]
