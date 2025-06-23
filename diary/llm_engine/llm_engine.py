@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 import os
 import logging
 from typing import Dict, List
@@ -10,6 +11,7 @@ from .llm_table import LLMS
 from .backoff import retry_with_exponential_backoff
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("openai").setLevel(logging.WARNING)
 
 
 class LLMEngine:
@@ -46,6 +48,9 @@ class LLMEngine:
         self.is_instruct = llm["is_instruct"]
         self.is_reasoning = llm["is_reasoning"]
         return
+    
+    def _maybe_await(self, result):
+        return asyncio.run(result) if inspect.isawaitable(result) else result
 
     @retry_with_exponential_backoff(
         max_retries=20,
@@ -56,15 +61,17 @@ class LLMEngine:
             "Called completion query on instruct model. "
             f"Model called: {self.config.model_name}"
         )
-        return self.client.completions.create(
-            model=self.config.model_name,
-            prompt=prompt,
-            max_tokens=self.config.get("max_tokens", 1024),
-            temperature=self.config.get("temperature", 0.0),
-            stop=list(self.config.get("stop", [])),
-            top_p=self.config.get("top_p", 1.0),
-            n=self.config.get("n", 1),
-            extra_headers={"min_p": f"{self.config.min_p:.3f}"},
+        return self._maybe_await(
+            self.client.completions.create(
+                model=self.config.model_name,
+                prompt=prompt,
+                max_tokens=self.config.get("max_tokens", 1024),
+                temperature=self.config.get("temperature", 0.0),
+                stop=list(self.config.get("stop", [])),
+                top_p=self.config.get("top_p", 1.0),
+                n=self.config.get("n", 1),
+                extra_headers={"min_p": f"{self.config.min_p:.3f}"}
+            )
         )
     
     @retry_with_exponential_backoff(
@@ -76,13 +83,15 @@ class LLMEngine:
             "Called chat query on non-instruct model. "
             f"Model called: {self.config.model_name}"
         )
-        return self.client.chat.completions.create(
-            model=self.config.model_name,
-            messages=messages,
-            max_tokens=self.config.get("max_tokens", 512),
-            temperature=self.config.get("temperature", 0.0),
-            top_p=self.config.get("top_p", 1.0),
-            n=self.config.get("n", 1),
+        return self._maybe_await(
+            self.client.chat.completions.create(
+                model=self.config.model_name,
+                messages=messages,
+                max_tokens=self.config.get("max_tokens", 1024),
+                temperature=self.config.get("temperature", 0.0),
+                top_p=self.config.get("top_p", 1.0),
+                n=self.config.get("n", 1),
+            )
         )
     
     def prompt_llm_chat_batch(self, messages_list: List):

@@ -47,7 +47,7 @@ def generate_narrative(
             review_criterion=["all"],
             entity=[interview_params.entity, agent_params.entity],
         )
-        print(f"Evaluation result: {"Success" if good else "Failure"}")
+        print(f"Evaluation result: {'Success' if good else 'Failure'}")
         metadata["critic_history"].append({
             "prompts": c_prompts,
             "pass": c_pass,
