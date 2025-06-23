@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Union, Literal
+from typing import List, Dict, Any, Union, Literal, Optional
 
 import numpy as np
 
@@ -58,9 +58,11 @@ class Attribute:
 
 class Identity:
     
-    def __init__(self, owner: str, attributes: List[Attribute] = []):
+    def __init__(self,
+                 owner: str,
+                 attributes: Optional[List[Attribute]] = None):
         self.owner_id: str = owner
-        self.attributes: List[Attribute] = attributes
+        self.attributes: List[Attribute] = attributes if attributes else []
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Identity":
@@ -77,7 +79,11 @@ class Identity:
         for attr in self.attributes:
             attr._sanity_check()
             if self.attributes.count(attr) > 1:
-                raise ValueError("Duplicate attributes in Identity.")
+                import pdb; pdb.set_trace()
+                raise ValueError(
+                    "Duplicate attributes in Identity. "
+                    f"Attribute: {attr.attribute}"
+                )
         
     def update(self, identity: "Attribute") -> None:
         self.attributes.append(identity)

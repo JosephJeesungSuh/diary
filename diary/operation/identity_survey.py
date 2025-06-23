@@ -56,6 +56,4 @@ def query_identity(
         obtained_from="query",
         stats=stats, raw_data=responses,
     )
-    import pdb; pdb.set_trace()
-
     return attribute, survey_event

@@ -19,7 +19,7 @@ sampling_params:
   api_base: "http://localhost:{port}/v1"
   temperature: 1.0
   min_p: 0.02
-  max_tokens: 1024
+  max_tokens: 128
   n: 64
   stop: ["Question:", "Answer:"]
     

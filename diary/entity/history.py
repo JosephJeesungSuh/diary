@@ -43,7 +43,10 @@ class History:
                 else:
                     setattr(history, k, v)
             else:
-                raise ValueError("Unexpected key in unserializing History.")
+                raise ValueError(
+                    "Unexpected key in unserializing History. "
+                    "Key: {k}, allowed keys: {(history.__dict__.keys())}"
+                )
         return history
     
     @classmethod

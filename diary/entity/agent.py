@@ -2,7 +2,7 @@ import os
 import json
 import pathlib
 import warnings
-import multiprocessing as mp
+from multiprocessing.pool import ThreadPool
 from datetime import datetime
 from typing import Optional, Dict, List, Union, Any
 
@@ -24,8 +24,8 @@ ROOT_DIR = os.path.dirname(CURRENT_DIR)
 
 class Agent:
     
-    def __init__(self):
-        self.id: str = random_hashtag()
+    def __init__(self, id: Optional[str] = None):
+        self.id: str = random_hashtag() if id is None else id
         self.history: History = History()
         self.identity: Identity = Identity(owner=self.id)
         self.progress: Progress = Progress()
@@ -35,7 +35,7 @@ class Agent:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Agent":
         assert isinstance(data, dict), "Data must be a dictionary."
-        agent = cls()
+        agent = cls(id=data.get("id", None))
         for k,v in data.items():
             if hasattr(agent, k):
                 attr = getattr(agent, k)
@@ -51,9 +51,9 @@ class Agent:
         assert isinstance(event, Event)
         self.history.update(event)
 
-    def update_identity(self, identity: Attribute) -> None:
-        assert isinstance(identity, Attribute)
-        self.identity.update(identity)
+    def update_identity(self, attribute: Attribute) -> None:
+        assert isinstance(attribute, Attribute)
+        self.identity.update(attribute)
     
     def rollout(self, **kwargs) -> None:
         rollout_kwargs = kwargs.copy()
@@ -150,7 +150,8 @@ class AgentCollection:
     def rollout(self, **kwargs) -> None:
         
         rollout_kwargs = kwargs.copy()
-        n_parallel: int = rollout_kwargs.pop("n_parallel", 1)
+        interview_params: Dict = rollout_kwargs.get("interview_params", None)
+        n_parallel: int = interview_params.get("n_parallel", 1)
         response_engine: LLMEngine = LLMEngine(
             llm_config=rollout_kwargs.pop("response_sampling_params", None)
         )
@@ -178,7 +179,7 @@ class AgentCollection:
                 for agent in self.agents:
                     _worker(agent); pbar.update(1)
             else:
-                with mp.pool.ThreadPool(n_parallel) as pool:
+                with ThreadPool(n_parallel) as pool:
                     for _ in pool.imap_unordered(_worker, self.agents):
                         pbar.update(1)        
     
