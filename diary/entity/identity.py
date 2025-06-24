@@ -74,6 +74,20 @@ class Identity:
             for attr in data.get("attributes", [])
         ]
         return identity
+    
+    def get_attribute(self,
+                      attribute: str,
+                      obtained_from: Literal["query", "critic"] = "query"
+                      ) -> Union[Attribute, None]:
+        target = Attribute(
+            attribute=attribute,
+            obtained_from=obtained_from,
+            run_check=False
+        )
+        for attr in self.attributes:
+            if attr == target:
+                return attr
+        return None
 
     def _sanity_check(self) -> None:
         for attr in self.attributes:

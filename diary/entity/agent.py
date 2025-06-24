@@ -3,13 +3,14 @@ import json
 import pathlib
 import warnings
 from multiprocessing.pool import ThreadPool
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from typing import Optional, Dict, List, Union, Any
 
 import numpy as np
 from tqdm import tqdm
 
-from diary.stats.registered_ops import Operation
+from diary.stats.stats import Operation
 from diary.entity.progress import Progress
 from diary.entity.intervention import Intervention
 from diary.entity.history import History, Event
@@ -166,6 +167,7 @@ class AgentCollection:
                     **rollout_kwargs,
                     response_engine=response_engine,
                     critic_engine=critic_engine)
+                print(f"--> Agent {getattr(agent, 'id', 'N/A')} rollout complete")
             except Exception as exc:
                 warnings.warn(
                     f"[Agent {getattr(agent, 'id', 'N/A')}] rollout failed: {exc}"
@@ -188,9 +190,12 @@ class AgentCollection:
             np.random.seed(seed)
             np.random.shuffle(self.agents)
     
-    def return_stats(self, op: Operation):
+    def return_stats(self, op: Operation, **kwargs):
         assert isinstance(op, Operation)
-        return op.perform_on(self.agents)
+        return op.perform_on(
+            identity_list=[agent.identity for agent in self.agents],
+            **kwargs
+        )
     
     def _run_sanity_checks(self) -> None:
         ids = self._get_agent_ids()

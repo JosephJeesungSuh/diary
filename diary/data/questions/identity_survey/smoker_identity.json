@@ -75,7 +75,7 @@
     },
     {
         "qkey": "fagerstrom_hate",
-        "question_body": "Which cigarette would you hate to give up?",
+        "question_body": "Which cigarette would you hate to give up? The first in the morning or any other?",
         "category": [
             "The first in the morning",
             "Any other"

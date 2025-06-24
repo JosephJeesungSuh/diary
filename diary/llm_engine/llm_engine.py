@@ -28,6 +28,7 @@ class LLMEngine:
             self.client = OpenAI(
                 api_key="EMPTY",
                 base_url=self.config.api_base.format(port=self.config.port),
+                timeout=self.config.get("timeout", 120),
             )
             models = self.client.models.list()
             model = next(iter(models)).id
@@ -39,6 +40,7 @@ class LLMEngine:
                 self.client = AsyncOpenAI(
                     api_key=os.environ.get("GOOGLE_API_KEY"),
                     base_url=self.config.api_base,
+                    timeout=self.config.get("timeout", 120),
                 )
             else:
                 raise ValueError("Cannot use other providers.")
@@ -53,7 +55,6 @@ class LLMEngine:
         return asyncio.run(result) if inspect.isawaitable(result) else result
 
     @retry_with_exponential_backoff(
-        max_retries=20,
         no_retry_on=(AuthenticationError, BadRequestError),
     )
     def prompt_llm(self, prompt: str):
@@ -75,7 +76,6 @@ class LLMEngine:
         )
     
     @retry_with_exponential_backoff(
-        max_retries=20,
         no_retry_on=(AuthenticationError, BadRequestError),
     )
     def prompt_llm_chat(self, messages: List[Dict[str, str]]):
@@ -104,7 +104,6 @@ class LLMEngine:
     async def _prompt_llm_chat_batch_async(self, messages_list: List):
         
         @retry_with_exponential_backoff(
-            max_retries=20,
             no_retry_on=(AuthenticationError, BadRequestError),
         )
         async def _single(messages):

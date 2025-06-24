@@ -3,9 +3,10 @@ from typing import Callable, Collection, Optional, Type
 
 def retry_with_exponential_backoff(
     initial_delay: float = 1.0,
-    exponential_base: float = 2.0,
+    exponential_base: float = 1.5,
     jitter: bool = True,
-    max_retries: int = 10,
+    max_retries: int = 20,
+    max_delay: float = 120.0,
     no_retry_on: Optional[Collection[Type[Exception]]] = None,
 ) -> Callable[[Callable], Callable]:
 
@@ -24,6 +25,8 @@ def retry_with_exponential_backoff(
                             raise
                         await asyncio.sleep(delay)
                         delay *= exponential_base * (1 + jitter * random.random())
+                        if max_delay is not None:
+                            delay = min(delay, max_delay)
                         retries += 1
                         logging.warning(f"Async retry {retries}/{max_retries} after: {e}")
             return async_wrapper
@@ -41,6 +44,8 @@ def retry_with_exponential_backoff(
                             raise
                         time.sleep(delay)
                         delay *= exponential_base * (1 + jitter * random.random())
+                        if max_delay is not None:
+                            delay = min(delay, max_delay)
                         retries += 1
                         logging.warning(f"Retry {retries}/{max_retries} after: {e}")
             return sync_wrapper
