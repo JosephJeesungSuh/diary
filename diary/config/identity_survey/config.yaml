@@ -1,8 +1,8 @@
 question_filepath:
-  "diary/data/questions/questions/identity_survey/smoker_identity.json"
+  "diary/data/questions/identity_survey/smoker_identity.json"
 
 output_filepath_template:
-  "diary_bank/identity_survey/output_{timestamp}.jsonl"
+  "diary_bank/identity_survey/{source}_{timestamp}.jsonl"
 
 agent_params:
   agent_filepath: None
@@ -29,3 +29,4 @@ critic_params:
   api_provider: "google"
   api_base: "https://generativelanguage.googleapis.com/v1beta/openai/"
   timeout: 120
+  use_async_client: True

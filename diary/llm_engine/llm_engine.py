@@ -37,11 +37,18 @@ class LLMEngine:
             )
         else:
             if api_provider == "google":
-                self.client = AsyncOpenAI(
-                    api_key=os.environ.get("GOOGLE_API_KEY"),
-                    base_url=self.config.api_base,
-                    timeout=self.config.get("timeout", 120),
-                )
+                if self.config.use_async_client:
+                    self.client = AsyncOpenAI(
+                        api_key=os.environ.get("GOOGLE_API_KEY"),
+                        base_url=self.config.api_base,
+                        timeout=self.config.get("timeout", 120),
+                    )
+                else:
+                    self.client = OpenAI(
+                        api_key=os.environ.get("GOOGLE_API_KEY"),
+                        base_url=self.config.api_base,
+                        timeout=self.config.get("timeout", 120),
+                    )
             else:
                 raise ValueError("Cannot use other providers.")
 
