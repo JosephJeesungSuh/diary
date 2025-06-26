@@ -32,6 +32,16 @@ class History:
         assert isinstance(event, Event)
         self.history_list.append(event)
 
+    def reformat_entity(self, src: str, dst: str) -> None:
+        """
+        Reformat the all entity names named src (ex. "Answer: ")
+        in the history to the new name dst (ex. "Interviewee: ").
+        """
+        assert isinstance(src, str) and isinstance(dst, str)
+        for event in self.history_list:
+            if event.entity == src:
+                event.entity = dst
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "History":
         assert isinstance(data, dict), "Data must be a dictionary."

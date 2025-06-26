@@ -1,8 +1,10 @@
+treatment_name: intervention
+
 question_filepath:
-  "diary/data/questions/narrative_generation/interview_questions.json"
+  "None"
 
 output_filepath_template:
-  "diary_bank/intervention/output_{timestamp}.jsonl"
+  "diary_bank/narrative_gen/output_{timestamp}.jsonl"
 
 agent_params:
   n_agent: 64

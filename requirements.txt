@@ -10,10 +10,14 @@ aiohttp==3.12.13
     # via vllm
 aiosignal==1.3.2
     # via aiohttp
-airportsdata==20250523
+airportsdata==20250622
     # via outlines
 annotated-types==0.7.0
     # via pydantic
+antlr4-python3-runtime==4.9.3
+    # via
+    #   hydra-core
+    #   omegaconf
 anyio==4.9.0
     # via
     #   httpx
@@ -80,7 +84,7 @@ email-validator==2.2.0
     # via fastapi
 executing==2.2.0
     # via stack-data
-fastapi[standard]==0.115.13
+fastapi[standard]==0.115.14
     # via vllm
 fastapi-cli[standard]==0.0.7
     # via fastapi
@@ -109,13 +113,13 @@ googleapis-common-protos==1.70.0
     # via
     #   opentelemetry-exporter-otlp-proto-grpc
     #   opentelemetry-exporter-otlp-proto-http
-grpcio==1.73.0
+grpcio==1.73.1
     # via opentelemetry-exporter-otlp-proto-grpc
 h11==0.16.0
     # via
     #   httpcore
     #   uvicorn
-hf-xet==1.1.4
+hf-xet==1.1.5
     # via huggingface-hub
 httpcore==1.0.9
     # via httpx
@@ -125,11 +129,13 @@ httpx==0.28.1
     # via
     #   fastapi
     #   openai
-huggingface-hub[hf-xet]==0.33.0
+huggingface-hub[hf-xet]==0.33.1
     # via
     #   tokenizers
     #   transformers
     #   vllm
+hydra-core==1.3.2
+    # via -r requirements.in
 idna==3.10
     # via
     #   anyio
@@ -181,7 +187,7 @@ lark==1.2.2
     # via
     #   outlines
     #   vllm
-llguidance==0.7.29
+llguidance==0.7.30
     # via vllm
 llvmlite==0.44.0
     # via numba
@@ -209,7 +215,7 @@ msgpack==1.1.1
     # via ray
 msgspec==0.19.0
     # via vllm
-multidict==6.5.0
+multidict==6.5.1
     # via
     #   aiohttp
     #   yarl
@@ -237,8 +243,10 @@ numpy==2.2.5
     #   opencv-python-headless
     #   outlines
     #   pandas
+    #   patsy
     #   scikit-learn
     #   scipy
+    #   statsmodels
     #   torchvision
     #   transformers
     #   vllm
@@ -280,8 +288,12 @@ nvidia-nvjitlink-cu12==12.6.85
     #   torch
 nvidia-nvtx-cu12==12.6.77
     # via torch
+omegaconf==2.3.0
+    # via hydra-core
 openai==1.90.0
-    # via vllm
+    # via
+    #   -r requirements.in
+    #   vllm
 opencv-python-headless==4.11.0.86
     # via
     #   mistral-common
@@ -324,17 +336,23 @@ outlines-core==0.1.26
 packaging==25.0
     # via
     #   huggingface-hub
+    #   hydra-core
     #   ipykernel
     #   lm-format-enforcer
     #   matplotlib
     #   ray
+    #   statsmodels
     #   transformers
 pandas==2.3.0
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   statsmodels
 parso==0.8.4
     # via jedi
-partial-json-parser==0.2.1.1.post5
+partial-json-parser==0.2.1.1.post6
     # via vllm
+patsy==1.0.1
+    # via statsmodels
 pexpect==4.9.0
     # via ipython
 pillow==11.2.1
@@ -387,7 +405,7 @@ pydantic==2.11.7
     #   xgrammar
 pydantic-core==2.33.2
     # via pydantic
-pygments==2.19.1
+pygments==2.19.2
     # via
     #   ipython
     #   ipython-pygments-lexers
@@ -399,7 +417,7 @@ python-dateutil==2.9.0.post0
     #   jupyter-client
     #   matplotlib
     #   pandas
-python-dotenv==1.1.0
+python-dotenv==1.1.1
     # via uvicorn
 python-json-logger==3.3.0
     # via vllm
@@ -412,6 +430,7 @@ pyyaml==6.0.2
     #   gguf
     #   huggingface-hub
     #   lm-format-enforcer
+    #   omegaconf
     #   ray
     #   transformers
     #   uvicorn
@@ -457,9 +476,10 @@ safetensors==0.5.3
     # via transformers
 scikit-learn==1.6.1
     # via -r requirements.in
-scipy==1.15.3
+scipy==1.16.0
     # via
     #   scikit-learn
+    #   statsmodels
     #   vllm
 sentencepiece==0.2.0
     # via
@@ -482,6 +502,8 @@ starlette==0.46.2
     # via
     #   fastapi
     #   prometheus-fastapi-instrumentator
+statsmodels==0.14.4
+    # via -r requirements.in
 sympy==1.14.0
     # via torch
 threadpoolctl==3.6.0
@@ -491,7 +513,7 @@ tiktoken==0.9.0
     #   mistral-common
     #   vllm
     #   xgrammar
-tokenizers==0.21.1
+tokenizers==0.21.2
     # via
     #   transformers
     #   vllm

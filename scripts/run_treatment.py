@@ -1,4 +1,4 @@
-# running identity survey operations on agents
+# running intervention / control on agentcollection
 import os
 import json
 import pathlib
@@ -15,15 +15,16 @@ ROOT_DIR = os.path.dirname(CURRENT_DIR)
 
 @hydra.main(
     config_path=os.path.join(
-        ROOT_DIR, "diary", "config", "identity_survey",
+        ROOT_DIR, "diary", "config", "treatment",
     ),
     config_name="config",
     version_base="1.3",
 )
 def main(cfg: DictConfig):
     
+    cfg = cfg.treatment
     datetime_init = datetime.now().strftime("%Y%m%d_%H%M%S")
-    print(f"--> main(): Running identity survey with config: {cfg}")
+    print(f"--> main(): Running {cfg.treatment_name} with config: {cfg}")
     
     with open(os.path.join(ROOT_DIR, cfg.question_filepath), "r") as f:
         questions = json.load(f)
