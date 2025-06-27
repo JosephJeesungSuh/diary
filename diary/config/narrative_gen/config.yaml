@@ -2,7 +2,7 @@ question_filepath:
   "diary/data/questions/narrative_generation/interview_questions.json"
 
 output_filepath_template:
-  "diary_bank/narrative_gen/output_{timestamp}.jsonl"
+  "diary_bank/narrative_gen/interview_{timestamp}.jsonl"
 
 agent_params:
   n_agent: 64
@@ -13,6 +13,7 @@ interview_params:
   n_parallel: 16
   max_trial: 8
   entity: "Question: "
+  bypass_critic: False
 
 sampling_params:
   model_name: "mistralai/Mistral-Small-24B-Base-2501"

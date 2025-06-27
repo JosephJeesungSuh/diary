@@ -5,7 +5,7 @@ from omegaconf import DictConfig
 from diary.entity.history import History, Event
 from diary.entity.identity import Attribute
 from diary.llm_engine.llm_engine import LLMEngine
-from diary.utils.flexible_critic import parse_identity_survey # , catch_identity
+from diary.utils.flexible_critic import parse_identity_survey
 
 def query_identity(
     history: History,
@@ -20,18 +20,25 @@ def query_identity(
     agent_params: DictConfig = kwargs.get("agent_params", None)
     interview_params: DictConfig = kwargs.get("interview_params", None)
 
-    input_prompt: str = (
-        history.format_string() + "\n\n"
-        + interview_params.entity + question + "\n\n"
-        + agent_params.entity
-    ).strip()
+    if response_engine.is_instruct:
+        model_input: List[Dict[str, str]] = (
+            history.format_chat()
+            + [{"role": "user", "content": question.strip()}]
+        )
+    else:
+        model_input: str = (
+            history.format_string() + "\n\n"
+            + interview_params.entity + question + "\n\n"
+            + agent_params.entity
+        ).strip()
 
     metadata: Dict = {
         "SPECIAL_REASON": "This is an identity survey event.",
     }
-    result = response_engine.prompt_llm(prompt=input_prompt)
+    result = response_engine.prompt_llm_dispatch(prompt=model_input)
     responses = [
-        result.choices[idx].text.strip()
+        result.choices[idx].message.content.strip()
+        if response_engine.is_instruct else result.choices[idx].text.strip()
         for idx in range(response_engine.config.n)
     ]
     metadata["gen_cost"] = tuple([

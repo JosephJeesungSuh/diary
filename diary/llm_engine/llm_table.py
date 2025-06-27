@@ -77,4 +77,10 @@ LLMS = [
         "is_instruct": True,
         "is_reasoning": True,
     },
+    {
+        "model_name": "meta-llama/Llama-3.1-8B-Instruct",
+        "api_provider": "localhost",
+        "is_instruct": True,
+        "is_reasoning": False,
+    }
 ]

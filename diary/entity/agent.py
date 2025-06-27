@@ -59,7 +59,7 @@ class Agent:
     def rollout(self, **kwargs) -> None:
         rollout_kwargs = kwargs.copy()
         op: str = rollout_kwargs.pop("op", None)     
-        assert op in ["narrative", "identity", "diary"], (
+        assert op in ["narrative", "identity", "treatment"], (
             f"--> Agent.rollout(): Invalid rollout operation {op}."
         )
         if op == "narrative":
@@ -90,8 +90,10 @@ class Agent:
                 )
                 self.update_identity(new_attribute)
                 self.update_history(event)
-        else:
+        elif op == "treatment":
             raise NotImplementedError
+        else:
+            raise ValueError(f"Invalid operation {op} for Agent.rollout().")
         return
 
     @property

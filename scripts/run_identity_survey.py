@@ -51,6 +51,11 @@ def main(cfg: DictConfig):
 
     output_filepath = os.path.join(
         ROOT_DIR, cfg.output_filepath_template.format(
+            source=(
+                str(os.path.splitext(
+                    os.path.basename(cfg.agent_params.agent_filepath))[0]
+                ) if cfg.agent_params.agent_filepath != 'None' else "new"
+            ),
             timestamp=datetime_init
         )
     )

@@ -57,7 +57,11 @@ class LLMEngine:
         self.is_instruct = llm["is_instruct"]
         self.is_reasoning = llm["is_reasoning"]
         return
-    
+
+    def prompt_llm_dispatch(self, prompt: str | List[Dict[str, str]]):
+        return self.prompt_llm_chat(messages=prompt) \
+            if self.is_instruct else self.prompt_llm(prompt=prompt)
+
     def _maybe_await(self, result):
         return asyncio.run(result) if inspect.isawaitable(result) else result
 
@@ -69,6 +73,7 @@ class LLMEngine:
             "Called completion query on instruct model. "
             f"Model called: {self.config.model_name}"
         )
+        assert isinstance(prompt, str)
         return self._maybe_await(
             self.client.completions.create(
                 model=self.config.model_name,
@@ -90,6 +95,7 @@ class LLMEngine:
             "Called chat query on non-instruct model. "
             f"Model called: {self.config.model_name}"
         )
+        assert isinstance(messages, list)
         return self._maybe_await(
             self.client.chat.completions.create(
                 model=self.config.model_name,

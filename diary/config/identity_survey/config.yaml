@@ -2,7 +2,7 @@ question_filepath:
   "diary/data/questions/identity_survey/smoker_identity.json"
 
 output_filepath_template:
-  "diary_bank/identity_survey/{source}_{timestamp}.jsonl"
+  "diary_bank/identity_survey/{source}_identity_survey_{timestamp}.jsonl"
 
 agent_params:
   agent_filepath: None

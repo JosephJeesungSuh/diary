@@ -28,6 +28,21 @@ class History:
             if event.format_string() != ""
         ])
     
+    def format_chat(self,
+                    role_mapping: Dict[str, str] = {
+                        "Question: " : "user",
+                        "Answer: " : "assistant",
+                    }) -> List[Dict[str, str]]:
+        chat_history: List = []
+        for event in self.history_list:
+            if event.format_string() != "":
+                role = role_mapping.get(event.entity, "ERROR")
+                assert role != "ERROR"
+                chat_history.append({
+                    "role": role, "content":event.action.strip()
+                })
+        return chat_history
+    
     def update(self, event: Event) -> None:
         assert isinstance(event, Event)
         self.history_list.append(event)
