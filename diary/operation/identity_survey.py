@@ -6,6 +6,7 @@ from diary.entity.history import History, Event
 from diary.entity.identity import Attribute
 from diary.llm_engine.llm_engine import LLMEngine
 from diary.utils.flexible_critic import parse_identity_survey
+from .system_prompt import SYSPROMPT_TABLE
 
 def query_identity(
     history: History,
@@ -22,7 +23,8 @@ def query_identity(
 
     if response_engine.is_instruct:
         model_input: List[Dict[str, str]] = (
-            history.format_chat()
+            [{"role": "system", "content": SYSPROMPT_TABLE["default"]}]
+            + history.format_chat()
             + [{"role": "user", "content": question.strip()}]
         )
     else:

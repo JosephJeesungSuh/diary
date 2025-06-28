@@ -5,6 +5,7 @@ from omegaconf import DictConfig
 from diary.entity.history import Event, History
 from diary.llm_engine.llm_engine import LLMEngine
 from diary.utils.flexible_critic import evaluate_narrative
+from .system_prompt import SYSPROMPT_TABLE
 
 def generate_narrative(
     history: History,
@@ -34,7 +35,8 @@ def generate_narrative(
     ).strip()
     if response_engine.is_instruct:
         model_input: List[Dict[str, str]] = (
-            history.format_chat()
+            [{"role": "system", "content": SYSPROMPT_TABLE["default"]}]
+            + history.format_chat()
             + [{"role": "user", "content": continuation_prompt.strip()}]
         )
     else:

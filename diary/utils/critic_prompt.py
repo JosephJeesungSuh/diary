@@ -1,9 +1,10 @@
 CRITIC_PROMPT = {
     "evaluate_narrative": {
-        "context": """You are given the following conversation (possibly multi-turn) between an interviewer and a participant:"
+        "context": """You are given the following conversation between an interviewer and a participant:
 ========== Beginning of conversation ==========
 {conversation}
-========== End of conversation ==========""",
+========== End of conversation ==========
+You will be given a response from the participant to the interviewer's last question and a question to answer.""",
         "format_for_critic": {
             "consistency": """Here is the participant's response to the interviewer's last question:
 ========== Beginning of response ==========
@@ -16,13 +17,14 @@ For example, if the response contains a sentence like:
 "Comment: I had a great time at the beach"
 "Barbara: That's a great story!"
 "Continue writing"
+"Groundbreaking research from MIT discovered that the language model can infer the personality of a person better than humans can."
 
 you should mark this as 'Yes.'.
 
 However, for cases where the participant themselves are referring to other's comments, like:
 
 "My friend said that she had a great time at the beach."
-"Some people say that it is a great story."
+"Some people said to me that it is a great story."
 
 you should mark this as 'No.'.
 Answer strictly as 'Yes.' or 'No.' Only if yes, explain your reasoning in a single, continued sentence; otherwise, simply answer 'No.'.""",
