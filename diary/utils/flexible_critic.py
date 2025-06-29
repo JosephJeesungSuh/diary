@@ -18,13 +18,15 @@ def generate_critic_prompt(context: Any,
                                "check_n_smoked"],
                            entity: List[str]) -> List[List[Dict[str, str]]]:
     assert purpose in CRITIC_PROMPT, (
-        "invalid purpose for calling critic model."
+        "invalid purpose for calling critic model. "
+        f"Available purposes: {list(CRITIC_PROMPT.keys())}."
     )
     assert isinstance(review_criterion, list)
 
     if purpose == "evaluate_narrative":
         assert isinstance(rollout, str)
-        if review_criterion == ["all"]: # special case
+        # the rollout should be a single response, review criteria (criterion) applied.
+        if review_criterion == ["all"]: # apply all criteria
             review_criterion = list(CRITIC_PROMPT[purpose]['format_for_critic'].keys())
         
         context = context.strip().replace(
@@ -47,6 +49,7 @@ def generate_critic_prompt(context: Any,
         return critic_prompts
     
     elif purpose == "parse_identity_survey":
+        # rollout is sampled responses
         critic_prompts = [
             [
                 {"role": "user", "content": (
@@ -57,6 +60,17 @@ def generate_critic_prompt(context: Any,
                     )
                  )}
             ] for r in rollout
+        ]
+        return critic_prompts
+    
+    elif purpose == "check_n_smoked":
+        critic_prompts = [
+            {"role": "user", "content": (
+                CRITIC_PROMPT[purpose]['context'].format(
+                    question_body=context,
+                    response=rollout
+                )
+            )}
         ]
         return critic_prompts
 
@@ -121,5 +135,24 @@ def parse_identity_survey(engine: LLMEngine,
     return (critic_prompts, critic_usage, stats, na_count)
 
 
-def check_n_smoked(self, response: str, context: str) -> int:
-    raise NotImplementedError
+def check_n_smoked(engine: LLMEngine,
+                   context: str, rollout: str) -> Tuple:
+    critic_prompt: List[Dict[str, str]] = generate_critic_prompt(
+        context=context,
+        rollout=rollout,
+        review_criterion=[],
+        purpose="check_n_smoked",
+        entity=[],
+    )
+    critic_run = engine.prompt_llm_chat(critic_prompt)
+    output = critic_run.choices[0].message.content.strip()
+    critic_usage = tuple([
+        critic_run.usage.prompt_tokens,
+        critic_run.usage.completion_tokens,
+        critic_run.usage.total_tokens,
+    ])
+    return (
+        critic_prompt,
+        critic_usage,
+        output if output.strip().lower() != '[n/a]' else None
+    )

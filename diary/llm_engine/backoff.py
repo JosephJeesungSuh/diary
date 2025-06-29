@@ -28,7 +28,9 @@ def retry_with_exponential_backoff(
                         if max_delay is not None:
                             delay = min(delay, max_delay)
                         retries += 1
-                        logging.warning(f"Async retry {retries}/{max_retries} after: {e}")
+                        logging.warning(f"Async retry {retries}/{max_retries} after: {e}."
+                                        f" Retrying in {delay:.2f} seconds."
+                                        f" Current arguments: {args}, {kwargs}")
             return async_wrapper
         
         else:

@@ -118,5 +118,17 @@ Available options, each separated by a newline:
 ========== End of response ==========
 Instruction: Print strictly which option the person's response corresponds to. Copy the option exactly as it is, without any additional text or explanation or modification.
 If the response does not match any of the options, strictly print '[N/A]'.""",
+    },
+    "check_n_smoked": {
+        "context": """You are given the following question and a person's response to the question:
+========== Beginning of question ==========
+Question: {question_body}
+========== End of question ==========
+========== Beginning of response ==========
+{response}
+========== End of response ==========
+Instruction: Print strictly how many cigarettes the person has smoked in the time period specified in the question.
+If you cannot determine the exact number of cigarettes smoked, print the possible range in the format of [min]-[max], where [min] and [max] are minimum and maximum number of cigarettes smoked, respectively.
+If the response does not contain any information about the number of cigarettes smoked, strictly print '[N/A]'.""",
     }
 }

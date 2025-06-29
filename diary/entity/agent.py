@@ -183,9 +183,13 @@ class AgentCollection:
                 for agent in self.agents:
                     _worker(agent); pbar.update(1)
             else:
-                with ThreadPool(n_parallel) as pool:
-                    for _ in pool.imap_unordered(_worker, self.agents):
-                        pbar.update(1)        
+            #     with ThreadPool(n_parallel) as pool:
+            #         for _ in pool.imap_unordered(_worker, self.agents):
+            #             pbar.update(1)
+                with ThreadPoolExecutor(max_workers=n_parallel) as executor:
+                    futures = [executor.submit(_worker, agent) for agent in self.agents]
+                    for _ in as_completed(futures):
+                        pbar.update(1)
     
     def shuffle(self, seed: Optional[int] = None) -> None:
         if seed is not None:
