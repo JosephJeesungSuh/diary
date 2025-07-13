@@ -1,0 +1,23 @@
+{
+    "treatment_name": "control",
+    "study_duration": "06-00-00",
+    "interview": {
+        "freq": "00-01-00",
+        "formats": [
+            "Did you smoke any cigarettes during the past week? If so, how many cigarettes did you smoke per day?",
+            "What was the typical day like for you during the past week? Did you smoke any cigarettes?"
+        ]
+    },
+    "messaging": {
+        "freq": "00-02-00",
+        "formats": [
+            "Thanks for taking part! Without your input, the study could not have gone ahead!",
+            "Thanks for taking part. Remember, if you have changed contact details please let us know. We will need to contact you at the end of the study.",
+            "Being part of this will help others in the future. Thanks for your help!",
+            "Thanks for taking part! The study is important and supported by the academic community.",
+            "Only {/remain_week} more weeks to go until completion of the study!",
+            "We will be contacting you soon to collect final information. Any change in contact details txt us. Thanks once again!"
+        ]
+    },
+    "interactive_ops": {}
+}

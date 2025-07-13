@@ -1,13 +1,12 @@
 treatment_name: control
 
 question_filepath:
-  "diary/data/questions/narrative_generation/interview_questions.json"
+  "diary/data/questions/treatment/control.json"
 
 output_filepath_template:
-  "diary_bank/narrative_gen/output_{timestamp}.jsonl"
+  "diary_bank/treatment/{source}_control_{timestamp}.jsonl"
 
 agent_params:
-  n_agent: 64
   agent_filepath: None
   entity: "Answer: "
 
@@ -25,7 +24,7 @@ sampling_params:
   temperature: 1.0
   min_p: 0.02
   max_tokens: 1024
-  stop: ["Question:", "Answer:"]
+  stop: ["Question:", "Answer:", "[Week"]
     
 critic_params:
   model_name: "gemini-2.0-flash"

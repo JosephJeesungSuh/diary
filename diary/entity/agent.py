@@ -2,6 +2,7 @@ import os
 import json
 import pathlib
 import warnings
+import asyncio
 from multiprocessing.pool import ThreadPool
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
@@ -163,33 +164,34 @@ class AgentCollection:
         )
         print(f"--> AgentCollection.rollout(): initialized LLMEngine.")
 
-        def _worker(agent: Agent) -> None:
+        async def _async_worker(agent: Agent):
             try:
-                agent.rollout(
+                await asyncio.to_thread(
+                    agent.rollout,
                     **rollout_kwargs,
                     response_engine=response_engine,
-                    critic_engine=critic_engine)
+                    critic_engine=critic_engine
+                )
                 print(f"--> Agent {getattr(agent, 'id', 'N/A')} rollout complete")
             except Exception as exc:
                 warnings.warn(
                     f"[Agent {getattr(agent, 'id', 'N/A')}] rollout failed: {exc}"
                 )
                 return 1
+            
+        async def _run_all():
+            semaphore = asyncio.Semaphore(n_parallel)
+            async def sem_task(agent: Agent):
+                async with semaphore:
+                    await _async_worker(agent)
+                    pbar.update(1)
+            tasks = [asyncio.create_task(sem_task(agent)) for agent in self.agents]
+            await asyncio.gather(*tasks)
 
         with tqdm(
             total=len(self.agents), desc="Agent Rollout",
         ) as pbar:
-            if n_parallel <= 1:
-                for agent in self.agents:
-                    _worker(agent); pbar.update(1)
-            else:
-            #     with ThreadPool(n_parallel) as pool:
-            #         for _ in pool.imap_unordered(_worker, self.agents):
-            #             pbar.update(1)
-                with ThreadPoolExecutor(max_workers=n_parallel) as executor:
-                    futures = [executor.submit(_worker, agent) for agent in self.agents]
-                    for _ in as_completed(futures):
-                        pbar.update(1)
+            asyncio.run(_run_all())
     
     def shuffle(self, seed: Optional[int] = None) -> None:
         if seed is not None:
