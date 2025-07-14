@@ -1,5 +1,7 @@
 from typing import List, Dict, Any, Union
 
+from diary.utils.misc_utils import clean_format_chat
+
 class Event:
 
     def __init__(self,
@@ -36,12 +38,11 @@ class History:
         chat_history: List = []
         for event in self.history_list:
             if event.format_string() != "":
-                role = role_mapping.get(event.entity, "ERROR")
-                assert role != "ERROR"
+                role = role_mapping.get(event.entity, "user")
                 chat_history.append({
-                    "role": role, "content":event.action.strip()
+                    "role": role, "content": event.action.strip()
                 })
-        return chat_history
+        return clean_format_chat(chat_history)
     
     def update(self, event: Event) -> None:
         assert isinstance(event, Event)

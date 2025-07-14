@@ -1,10 +1,10 @@
 treatment_name: control
 
-question_filepath:
+environment_filepath:
   "diary/data/questions/treatment/control.json"
 
 output_filepath_template:
-  "diary_bank/treatment/{source}_control_{timestamp}.jsonl"
+  "diary_bank/{treatment_name}/{source}_control_{timestamp}.jsonl"
 
 agent_params:
   agent_filepath: None
@@ -13,6 +13,10 @@ agent_params:
 interview_params:
   n_parallel: 16
   max_trial: 8
+  entity: "Question: "
+  bypass_critic: False
+
+system_params:
   entity: "Question: "
 
 sampling_params:
@@ -24,7 +28,7 @@ sampling_params:
   temperature: 1.0
   min_p: 0.02
   max_tokens: 1024
-  stop: ["Question:", "Answer:", "[Week"]
+  stop: ["Question:", "Answer:", "[Week", "[Day"]
     
 critic_params:
   model_name: "gemini-2.0-flash"

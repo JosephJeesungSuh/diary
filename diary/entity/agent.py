@@ -3,8 +3,6 @@ import json
 import pathlib
 import warnings
 import asyncio
-from multiprocessing.pool import ThreadPool
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from typing import Optional, Dict, List, Union, Any
 
@@ -17,8 +15,20 @@ from diary.entity.intervention import Intervention
 from diary.entity.history import History, Event
 from diary.entity.identity import Identity, Attribute
 from diary.llm_engine.llm_engine import LLMEngine
-from diary.utils.misc_utils import class_to_dict, random_hashtag
-from diary.operation import generate_narrative, query_identity
+from diary.utils.misc_utils import (
+    class_to_dict,
+    random_hashtag,
+    extract_placeholder
+)
+from diary.operation import (
+    generate_narrative,
+    query_identity,
+    run_intervention
+)
+from diary.operation.system_prompt import (
+    MESSAGING_SYSTEM_DESCRIPTION,
+    MESSAGING_RECEIVE_DESCRIPTION
+)
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(CURRENT_DIR)
@@ -57,6 +67,19 @@ class Agent:
         assert isinstance(attribute, Attribute)
         self.identity.update(attribute)
     
+    def update_progress(self, env: Dict) -> None:
+        assert Progress.convert_timestamp_to_day(
+            env.get("study_duration", "00-00-00")
+        ) > 0
+        if self.progress.progress == []:
+            self.progress = Progress(env)
+        else:
+            self.progress.update(env)
+
+    def update_assignment(self, env: Dict) -> None:
+        assert isinstance(env, dict)
+        self.assigned_to = Intervention(env)
+        
     def rollout(self, **kwargs) -> None:
         rollout_kwargs = kwargs.copy()
         op: str = rollout_kwargs.pop("op", None)     
@@ -92,7 +115,77 @@ class Agent:
                 self.update_identity(new_attribute)
                 self.update_history(event)
         elif op == "treatment":
-            raise NotImplementedError
+            env: Dict = rollout_kwargs.pop("environment_params", None)
+            assert env is not None
+            # register the intervention environment to Progress and Intervention
+            self.update_progress(env)
+            self.update_assignment(env)
+            while self.progress.is_finished() is False:
+                # advance the progress by one timestep
+                # temporal advance info ([Day 1]) is recorded as event.
+                ops_to_invoke: List[str] = self.progress.forward()                
+                self.update_history(
+                    Event(
+                        entity="",
+                        action=self.progress.current_printable(),
+                    )
+                )
+                for op_name in ops_to_invoke:
+                    # each invoked operation is consisted of:
+                    # 1. prompt
+                    # 2. who invokes (system or interviewer)
+                    # 3. whether it requires a response from agent
+                    prompt, entity, critic_fn, require_response = \
+                        self._assigned_to.return_ops(op_name)
+                    # sometimes prompt is contextualized,
+                    # ex. with agent's name or the current status (how many weeks left)
+                    placeholders = extract_placeholder(prompt)
+                    if placeholders:
+                        info = [(p, self.agent_information(p)) for p in placeholders]
+                        prompt = prompt.format(**dict(info))
+                    if require_response:
+                        # run the sampling engine to make agent rollout
+                        query, response = run_intervention(
+                            intervention=self._assigned_to,
+                            history=self.history,
+                            continuation_prompt=prompt,
+                            critic_fn=critic_fn,
+                            **rollout_kwargs,
+                        )
+                        self.update_history(query)
+                        self.update_history(response)
+                    else:
+                        if entity == "interview":
+                            # if it is invoked by interviewer but not requires response
+                            # just record the prompt as an event.
+                            self.update_history(
+                                Event(
+                                    entity=rollout_kwargs.get("interview_params").entity,
+                                    action=prompt,
+                                    metadata=None,
+                                )
+                            )
+                        elif entity == "system":
+                            # invoked by the system (ex. regular reminder)
+                            self.update_history(
+                                Event(
+                                    entity=rollout_kwargs.get("system_params").entity,
+                                    action=MESSAGING_SYSTEM_DESCRIPTION,
+                                    metadata=None,
+                                )
+                            )
+                            self.update_history(
+                                Event(
+                                    entity=rollout_kwargs.get("agent_params").entity,
+                                    action=MESSAGING_RECEIVE_DESCRIPTION.format(prompt=prompt),
+                                    metadata=None,
+                                )
+                            )
+                        else:
+                            raise ValueError(f"Invalid entity {entity} for Agent.rollout().")
+                    self.progress.update_progress(
+                        (op_name, self.progress.current)
+                    )
         else:
             raise ValueError(f"Invalid operation {op} for Agent.rollout().")
         return
@@ -110,6 +203,11 @@ class Agent:
 
     def _sanity_check(self) -> None:
         assert self.identity.owner_id == self.id
+
+    def agent_information(self, query: str) -> Any:
+        if query == "remain_week":
+            return self.progress.remaining_weeks()
+        raise NotImplementedError
         
 
 class AgentCollection:

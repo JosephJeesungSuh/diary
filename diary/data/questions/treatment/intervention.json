@@ -1,3 +1,89 @@
 {
-    "treatment_name": "intervention"
+    "treatment_name": "intervention",
+    "treatment_uid": "JcjiwyyCMomEhbhPjyezPA24p0a7sJ7J",
+    "study_duration": "06-00-00",
+    "timestep": "00-00-01",
+    "ops": {
+        "FREQ_interview": {
+            "freq": "00-00-01",
+            "formats": [
+                "Did you smoke any cigarettes during the past week? If so, how many cigarettes did you smoke per day?",
+                "What was the typical day like for you during the past week? Did you smoke any cigarettes?"
+            ],
+            "require_response" : true,
+            "entity": "interview",
+            "critic_fn": ["evaluate_narrative", "check_n_smoked"]
+        },
+        "FREQ_messaging": {
+            "freq": "00-00-01",
+            "formats": [
+                "Thanks for taking part! Without your input, the study could not have gone ahead!"
+            ],
+            "except": ["00-00-00"],
+            "require_response": false,
+            "entity": "system",
+            "critic_fn": []
+        },
+        "TIME_introduction": {
+            "when": ["00-00-00"],
+            "formats": [
+                "Thank you for participating in this quit smoking study. Your input is invaluable to us. We will be checking in with you daily to gather information about your smoking challenges you face."
+            ],
+            "require_response": true,
+            "entity": "interview",
+            "critic_fn": ["evaluate_narrative"]
+        },
+        "TIME_introducion_craving" : {
+            "when": ["00-00-00"],
+            "formats": [
+                "If you experience a craving, please send us a message with <CRAVE> to receive support."
+            ],
+            "require_response": false,
+            "entity": "system",
+            "critic_fn": []
+        },
+        "TIME_introducion_lapse" : {
+            "when": ["00-00-00"],
+            "formats": [
+                "If you have a lapse, please send us a message with <LAPSE> to receive support."
+            ],
+            "require_response": false,
+            "entity": "system",
+            "critic_fn": []
+        },
+        "COND_crave": {
+            "trigger": "<CRAVE>",
+            "formats": [
+                "When you feel a craving, it helps to drink water, take deep breaths, or distract yourself with a task.",
+                "If you feel a craving, try to engage in a different activity, like going for a walk or reading a book.",
+                "When you have a craving, it can be helpful to talk to someone or write down your feelings.",
+                "If you experience a craving, remember that it will pass. Focus on your goals and why you want to quit smoking.",
+                "When you feel a craving, try to visualize your success in quitting smoking and how good it will feel.",
+                "If you have a craving, try to remind yourself of the benefits of not smoking, like better health and saving money.",
+                "When you experience a craving, it can be useful to think about the reasons you want to quit smoking and how far you've come.",
+                "If you feel a craving, consider using a stress ball or squeezing a pillow to help release tension.",
+                "When you have a craving, it can be beneficial to practice mindfulness or meditation to help calm your mind.",
+                "If you experience a craving, try to engage in a hobby or activity that you enjoy to take your mind off it.",
+                "When you feel a craving, it can help to remind yourself of the support you have from friends and family.",
+                "If you have a craving, consider reaching out to a support group or hotline for additional assistance.",
+                "When you experience a craving, it can be helpful to set a timer for 10 minutes and focus on something else until it passes.",
+                "If you feel a craving, try to write down your thoughts and feelings in a journal to process them."
+            ]
+        },
+        "COND_lapse": {
+            "trigger": "<LAPSE>",
+            "formats": [
+                "If you have a lapse, remember that it's okay. Focus on getting back on track and don't be too hard on yourself.",
+                "When you experience a lapse, try to reflect on what led to it and how you can avoid similar situations in the future.",
+                "If you have a lapse, reach out to your support network for encouragement and motivation to continue your quit journey.",
+                "When you experience a lapse, remind yourself of the reasons you wanted to quit smoking in the first place.",
+                "If you have a lapse, consider it a learning opportunity and think about what strategies can help you avoid it next time.",
+                "When you experience a lapse, take a moment to breathe deeply and refocus on your goals.",
+                "If you have a lapse, try to engage in a positive activity that reinforces your commitment to quitting smoking.",
+                "When you experience a lapse, it can be helpful to visualize your success in quitting smoking and how good it will feel.",
+                "If you have a lapse, remember that quitting smoking is a process and setbacks are part of the journey.",
+                "When you experience a lapse, consider writing down your feelings and thoughts to help process the situation."
+            ]
+        }
+    }
 }

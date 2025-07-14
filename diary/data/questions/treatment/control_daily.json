@@ -1,6 +1,6 @@
 {
-    "treatment_name": "control",
-    "treatment_uid": "Ln2d1m3bdDzZPYrhG5VnbS1oVkGARdOy",
+    "treatment_name": "control_daily",
+    "treatment_uid": "hDlCgtU3lJaQshqMdZmzlWqkeX2gpAb5",
     "study_duration": "06-00-00",
     "timestep": "00-00-01",
     "ops": {
@@ -14,14 +14,13 @@
             "critic_fn": ["evaluate_narrative"]
         },
         "FREQ_messaging": {
-            "freq": "00-02-00",
+            "freq": "00-00-01",
             "formats": [
                 "Thanks for taking part! Without your input, the study could not have gone ahead!",
                 "Thanks for taking part. Remember, if you have changed contact details please let us know. We will need to contact you at the end of the study.",
                 "Being part of this will help others in the future. Thanks for your help!",
                 "Thanks for taking part! The study is important and supported by the academic community.",
-                "Only {remain_week} more weeks to go until completion of the study!",
-                "We will be contacting you soon to collect final information. Any change in contact details txt us. Thanks once again!"
+                "Only {remain_week} more weeks to go until completion of the study!"
             ],
             "except": ["00-00-00"],
             "require_response": false,
@@ -29,7 +28,7 @@
             "critic_fn": []
         },
         "FREQ_interview": {
-            "freq": "00-01-00",
+            "freq": "00-00-01",
             "formats": [
                 "It's time for your daily check-in: Did you smoke any cigarettes today? If so, how many cigarettes did you smoke? What triggered any urges or cravings? How did you cope with them? Please reply with details about your day."
             ],

@@ -4,8 +4,16 @@ CRITIC_PROMPT = {
 ========== Beginning of conversation ==========
 {conversation}
 ========== End of conversation ==========
-You will be given a response from the participant to the interviewer's last question and a question to answer.""",
+You will be given a response from the participant to the interviewer's last question.""",
         "format_for_critic": {
+            "relevance": """Here is the participant's response to the interviewer's last question:
+========== Beginning of response ==========
+{response}
+========== End of response ==========
+
+Question: Does the response fail to directly answer the interviewer's last question?
+Use the context of the conversation to determine if the response is relevant to the question asked.
+Answer strictly as 'Yes.' or 'No.' Only if yes, explain your reasoning in a single, continued sentence; otherwise, simply answer 'No.'""",
             "consistency": """Here is the participant's response to the interviewer's last question:
 ========== Beginning of response ==========
 {response}
@@ -15,9 +23,13 @@ Question: Does the response contain any comments made by a third person, outside
 For example, if the response contains a sentence like:
 
 "Comment: I had a great time at the beach"
-"Barbara: That's a great story!"
 "Continue writing"
 "Groundbreaking research from MIT discovered that the language model can infer the personality of a person better than humans can."
+"Looking back on some future fourths, tube
+
+### All Questions: Food For Thought: Smokers' Answers
+
+Title of Page"
 
 you should mark this as 'Yes.'.
 

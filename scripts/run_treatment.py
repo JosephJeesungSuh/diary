@@ -26,14 +26,13 @@ def main(cfg: DictConfig):
     datetime_init = datetime.now().strftime("%Y%m%d_%H%M%S")
     print(f"--> main(): Running {cfg.treatment_name} with config: {cfg}")
     
-    with open(os.path.join(ROOT_DIR, cfg.question_filepath), "r") as f:
-        questions = json.load(f)
-    qkeys = [q['qkey'] for q in questions]
-    print(f"--> main(): running survey on questions: {qkeys}")
-
+    with open(os.path.join(ROOT_DIR, cfg.environment_filepath), "r") as f:
+        treatment_metadata = json.load(f)
+    print(f"--> main(): running treatment with metadata: {treatment_metadata}")
+    
     agent_filepath = os.path.join(
         ROOT_DIR, cfg.agent_params.agent_filepath)
-    assert os.path.exists(agent_filepath), (
+    assert agent_filepath == 'None' or os.path.exists(agent_filepath), (
         "Agent must be providied. "
         f"Current agent filepath: {agent_filepath}"
     )
@@ -42,16 +41,23 @@ def main(cfg: DictConfig):
     print(agents)
     
     agents.rollout(
-        identity_query_prompt=questions,
+        environment_params=treatment_metadata,
         response_sampling_params=cfg.sampling_params,
         critic_params=cfg.critic_params,
         agent_params=cfg.agent_params,
         interview_params=cfg.interview_params,
-        op="identity"
+        system_params=cfg.system_params,
+        op="treatment"
     )
 
     output_filepath = os.path.join(
         ROOT_DIR, cfg.output_filepath_template.format(
+            treatment_name=cfg.treatment_name,
+            source=(
+                str(os.path.splitext(
+                    os.path.basename(cfg.agent_params.agent_filepath))[0]
+                ) if cfg.agent_params.agent_filepath != 'None' else "new"
+            ),
             timestamp=datetime_init
         )
     )
