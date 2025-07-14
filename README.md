@@ -1,2 +1,2 @@
-# quitjourney
-Diary of people who had smoke, is smoking, and will(?) smoke
+# T-GYM: Temporal Agent Simulation by Diarization
+and its application to dynamics simulation with controlled environment
