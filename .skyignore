@@ -1,0 +1,4 @@
+outputs/
+diary_bank/
+diary/data/human_stats
+*.ipynb

@@ -3,6 +3,8 @@ outputs/
 diary_bank/
 diary/data/human_stats
 *.ipynb
+# credentials info
+example_scripts/skypilot/basic_config.yaml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

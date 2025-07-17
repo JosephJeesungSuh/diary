@@ -1,0 +1,1 @@
+sky launch --use-spot -c myinstance basic_config.yaml -y

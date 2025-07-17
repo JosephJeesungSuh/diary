@@ -1,0 +1,1 @@
+sky jobs launch --use-spot -c goldberg_training goldberg_training_setup.yaml -y
