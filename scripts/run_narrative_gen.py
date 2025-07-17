@@ -53,8 +53,9 @@ def main(cfg: DictConfig):
     )
 
     # save
+    save_dir = ROOT_DIR if cfg.save_dir == "None" else cfg.save_dir
     output_filepath = os.path.join(
-        ROOT_DIR, cfg.output_filepath_template.format(
+        save_dir, cfg.output_filepath_template.format(
             question=cfg.question_filepath.split("/")[-1].split(".")[0],
             modelname=cfg.sampling_params.model_name.replace("/", "--"),
             timestamp=datetime_init

@@ -4,6 +4,9 @@ question_filepath:
 output_filepath_template:
   "diary_bank/narrative_gen/{question}_{modelname}_{timestamp}.jsonl"
 
+save_dir:
+  "None"
+
 agent_params:
   n_agent: 64
   agent_filepath: None
