@@ -1,4 +1,3 @@
-# running identity survey operations on agents
 import os
 import json
 import pathlib
@@ -49,13 +48,16 @@ def main(cfg: DictConfig):
         op="identity"
     )
 
+    save_dir = ROOT_DIR if cfg.save_dir == "None" else cfg.save_dir
     output_filepath = os.path.join(
-        ROOT_DIR, cfg.output_filepath_template.format(
+        save_dir, cfg.output_filepath_template.format(
             source=(
                 str(os.path.splitext(
                     os.path.basename(cfg.agent_params.agent_filepath))[0]
-                ) if cfg.agent_params.agent_filepath != 'None' else "new"
+                )
             ),
+            question=cfg.question_filepath.split("/")[-1].split(".")[0],
+            modelname=cfg.sampling_params.model_name.replace("/", "--"),
             timestamp=datetime_init
         )
     )
