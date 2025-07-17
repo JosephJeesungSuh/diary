@@ -1,1 +1,1 @@
-sky launch --use-spot -c myinstance basic_config.yaml -y
+sky launch --use-spot -c myinstance ~/projs/quitjourney/example_scripts/skypilot/basic_config.yaml -y

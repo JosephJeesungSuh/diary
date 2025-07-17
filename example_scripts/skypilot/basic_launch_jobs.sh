@@ -1,1 +1,1 @@
-sky jobs launch --use-spot -c goldberg_training goldberg_training_setup.yaml -y
+sky jobs launch --use-spot -c myinstance ~/projs/quitjourney/example_scripts/skypilot/basic_config.yaml -y
