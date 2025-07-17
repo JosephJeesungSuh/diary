@@ -1,0 +1,42 @@
+[
+    {
+        "qkey": "age",
+        "question_body": "What is your age?",
+        "category": [
+            "18-24",
+            "25-34",
+            "35-44",
+            "45-54",
+            "55-64",
+            "65+"
+        ]
+    },
+    {
+        "qkey": "gender",
+        "question_body": "What is your gender?",
+        "category": [
+            "Male",
+            "Female"
+        ]
+    },
+    {
+        "qkey": "race",
+        "question_body": "Which racial or ethnic groups do you identify with?",
+        "category": [
+            "White",
+            "African American",
+            "Hispanic or Latino",
+            "Asian",
+            "Other"
+        ]
+    },
+    {
+        "qkey": "education",
+        "question_body": "What is the highest level of education you have completed?",
+        "category": [
+            "High school or lower",
+            "Some college or trade school",
+            "College degree or higher"
+        ]
+    }
+]

@@ -49,7 +49,17 @@
         ]
     },
     {
-        "qkey": "presence_smoker",
+        "qkey": "cig_past_attempt",
+        "question_body": "How many attempts have you made in the past to quit smoking?",
+        "category": [
+            "0",
+            "1-2",
+            "3-5",
+            "5+"
+        ]
+    },
+    {
+        "qkey": "cig_presence_smoker",
         "question_body": "Is there a smoker other than you in your household?",
         "category": [
             "Yes",
@@ -65,7 +75,7 @@
             "31-60 minutes or more"
         ]
     },
-{
+    {
         "qkey": "fagerstrom_forbidden_places",
         "question_body": "Do you find it difficult to refrain from smoking in places where it is forbidden? e.g. Church, Library, etc.",
         "category": [
