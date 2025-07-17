@@ -2,7 +2,7 @@ question_filepath:
   "diary/data/questions/narrative_generation/interview_questions.json"
 
 output_filepath_template:
-  "diary_bank/narrative_gen/interview_{timestamp}.jsonl"
+  "diary_bank/narrative_gen/{question}_{modelname}_{timestamp}.jsonl"
 
 agent_params:
   n_agent: 64
