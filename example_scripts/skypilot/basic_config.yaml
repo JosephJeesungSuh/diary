@@ -1,0 +1,39 @@
+resources:
+  cloud: gcp
+  accelerators: A100-80GB:2
+
+# Working directory (optional) containing the project directory.
+# Its contents are synced to ~/sky_workdir/ on the instance.
+workdir: ~/projs/quitjourney
+
+envs:
+  # tokens and api keys
+  HF_TOKEN: HF_TOKEN
+  WANDB_API_KEY: WANDB_API_KEY
+  GOOGLE_API_KEY: GOOGLE_API_KEY
+
+# file mounts
+file_mounts:
+  /experiment_data:
+    source: gs://quitjourney
+    mode: MOUNT
+
+# Typical use: pip install -r requirements.txt
+# Invoked under the workdir (i.e., can use its files).
+setup: |
+  alias ca="conda activate"
+  conda create -n diary python=3.12 -y
+  conda activate diary
+  pip install -r requirements.txt
+  pip install -e .
+  echo "Finished setting up the environement."
+
+# Typical use: make use of resources, such as running training.
+# Invoked under the workdir (i.e., can use its files).
+run: |
+  set -e
+  echo "Activating runtime environment..."
+  conda activate diary
+  echo "Showing conda environments list..."
+  conda env list
+  echo "Finished running."
