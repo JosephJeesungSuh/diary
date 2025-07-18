@@ -5,7 +5,7 @@ import logging
 from typing import Dict, List
 
 from omegaconf import DictConfig
-from openai import AuthenticationError, BadRequestError, OpenAI, AsyncOpenAI
+from openai import AuthenticationError, BadRequestError, OpenAI
 
 from .llm_table import LLMS
 from .backoff import retry_with_exponential_backoff
@@ -38,11 +38,13 @@ class LLMEngine:
         else:
             if api_provider == "google":
                 if self.config.use_async_client:
-                    self.client = AsyncOpenAI(
-                        api_key=os.environ.get("GOOGLE_API_KEY"),
-                        base_url=self.config.api_base,
-                        timeout=self.config.get("timeout", 120),
-                    )
+                    self.client = {
+                        "incompletereason": "async",
+                        "api_key": os.environ.get("GOOGLE_API_KEY"),
+                        "base_url": self.config.api_base,
+                        "timeout": self.config.get("timeout", 120),
+                    }
+                    # when using async client, define LLMEngine client in lazy manner
                 else:
                     self.client = OpenAI(
                         api_key=os.environ.get("GOOGLE_API_KEY"),

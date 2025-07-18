@@ -87,6 +87,13 @@ class Agent:
             f"--> Agent.rollout(): Invalid rollout operation {op}."
         )
         if op == "narrative":
+            """
+            Semantics of narrative generation rollout:
+            1. Load a list of 'interview questions' to continuation_prompt
+            2. For each 'question', generate a response conditioned on history
+            3. Update agent history with the 'question' (entity = query_module)
+               and the response (entity = agent)
+            """
             continuation_prompt = rollout_kwargs.pop("continuation_prompt", None)
             assert continuation_prompt is not None
             if isinstance(continuation_prompt, str):
@@ -100,6 +107,14 @@ class Agent:
                 self.update_history(query)
                 self.update_history(response)
         elif op == "identity":
+            """
+            Semantics of identity query rollout:
+            1. Load a list of 'identity query questions' to query_prompts
+             - metadata (qkey, question body, categories) defined in query_prompts
+            2. For each 'question', generate an Attribute and update identity
+             - event is a null event (entity = "", action = "") indicating
+               the identity survey is performed but not added to textual history
+            """
             query_prompts: List[Dict] = (
                 rollout_kwargs.pop("identity_query_prompt", None)
             )
@@ -114,7 +129,11 @@ class Agent:
                 )
                 self.update_identity(new_attribute)
                 self.update_history(event)
+            import pdb; pdb.set_trace()
         elif op == "treatment":
+            """
+            Semantics of treatment rollout:
+            """
             env: Dict = rollout_kwargs.pop("environment_params", None)
             assert env is not None
             # register the intervention environment to Progress and Intervention
@@ -170,14 +189,16 @@ class Agent:
                             self.update_history(
                                 Event(
                                     entity=rollout_kwargs.get("system_params").entity,
-                                    action=MESSAGING_SYSTEM_DESCRIPTION,
+                                    action=MESSAGING_SYSTEM_DESCRIPTION[op_name],
                                     metadata=None,
                                 )
                             )
                             self.update_history(
                                 Event(
                                     entity=rollout_kwargs.get("agent_params").entity,
-                                    action=MESSAGING_RECEIVE_DESCRIPTION.format(prompt=prompt),
+                                    action=MESSAGING_RECEIVE_DESCRIPTION[op_name].format(
+                                        prompt=prompt
+                                    ),
                                     metadata=None,
                                 )
                             )
@@ -294,7 +315,7 @@ class AgentCollection:
     def shuffle(self, seed: Optional[int] = None) -> None:
         if seed is not None:
             np.random.seed(seed)
-            np.random.shuffle(self.agents)
+        np.random.shuffle(self.agents)
     
     def return_stats(self, op: Operation, **kwargs):
         assert isinstance(op, Operation)
@@ -302,6 +323,27 @@ class AgentCollection:
             identity_list=[agent.identity for agent in self.agents],
             **kwargs
         )
+    
+    def filter_to(self,
+               target_demographics: np.ndarray,
+               demographics_metadata: Dict[str, List[str]],
+               **kwargs) -> "AgentCollection":
+        """
+        Demographic filtering of agent collection based on bipartite matching.
+        Args:
+            target_demographics: 2D array of shape (n_population, n_features)
+             - each row is a demographic vector of individuals
+             - each entry is an interger representing a feature
+            demographics_metadata: dictionary containing
+             1. List of feature names in "featureslist"
+             2. for each feature name, a list of categories in "{feature_name}"
+            kwargs:
+             matching_scheme: str = {"hungarian", "greedy"}
+        """
+        assert len(self.agents) < target_demographics.shape[0], (
+            "Requires (number of agents) >= (number of individuals)"
+        )
+        raise NotImplementedError
     
     def _run_sanity_checks(self) -> None:
         ids = self._get_agent_ids()

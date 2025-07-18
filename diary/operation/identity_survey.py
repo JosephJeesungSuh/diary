@@ -1,6 +1,9 @@
+import asyncio
+import copy
 from typing import Dict, List, Union, Tuple
 
 from omegaconf import DictConfig
+from openai import AsyncOpenAI
 
 from diary.entity.history import History, Event
 from diary.entity.identity import Attribute
@@ -14,7 +17,18 @@ def query_identity(
     response_engine: LLMEngine,
     critic_engine: LLMEngine,
     **kwargs) -> Tuple[Attribute, Event]:
-    
+
+    copied_engine = critic_engine
+    # supporting per-query client for asyncengine
+    if isinstance(critic_engine.client, dict):
+        copied_engine = copy.copy(critic_engine)
+        client_cfg = copy.deepcopy(copied_engine.client)
+        assert client_cfg.pop("incompletereason", None) == "async"
+        copied_engine.client = AsyncOpenAI(**client_cfg)
+        return query_identity(
+            history, query, response_engine, copied_engine, **kwargs
+        )
+
     qkey: str = query["qkey"]
     question: str = query["question_body"]
     category: List[str] = query["category"]
@@ -49,7 +63,7 @@ def query_identity(
         result.usage.total_tokens,
     ])
     c_prompts, c_usage, stats, na_count = parse_identity_survey(
-        engine=critic_engine,
+        engine=copied_engine,
         context=query,
         rollouts=responses,
     )
