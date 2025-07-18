@@ -1,0 +1,80 @@
+{
+    "treatment_name": "intervention_daily_minitest_refined_01",
+    "treatment_uid": "jrYSpy8Sd0fQjAGGKQF34tljYgzB0E6a",
+    "study_duration": "00-02-00",
+    "timestep": "00-00-01",
+    "ops": {
+        "TIME_introduction": {
+            "when": ["00-00-00"],
+            "formats": [
+                "Thank you for participating in this smoking cessation study. Your input is extremely valuable to us. We will be checking in with you daily to learn more about the challenges you are experiencing in your journey to quit smoking.\nIf you experience a craving, please send us a message <CRAVE> to receive support."
+            ],
+            "entity": "interview",
+            "require_response": true,
+            "critic_fn": ["evaluate_narrative"]
+        },
+        "FREQ_messaging": {
+            "freq": "00-00-01",
+            "except": ["00-00-00"],
+            "begins_at": "00-00-01",
+            "ends_at": "99-99-99",            
+            "formats": [
+                "Review the plan you came up with to stop smoking. Keep doing the things that work and let go of the rest.",
+                "Review what has helped you to stay on track with quitting smoking. Keep doing that!",
+                "To stay motivated keep thinking about why you want to quit smoking.",
+                "Tell yourself quitting smoking is one of the best things you can do for yourself.",
+                "Give yourself credit for your efforts in quitting smoking. Do something nice for yourself!",
+                "When you have an urge to smoke, use 3D's. Drink water, Distract yourself with things you enjoy & do some Deep breathing.",
+                "Adding more physical activity to your day can really help when you're quitting.",
+                "Think of the money you'll save from quitting, and the things you would like to do with it.",
+                "Make sure to eat well and drink lots of water while you're quitting.",
+                "Think about the things that are helping you to stay quit. Keep doing those things!",
+                "Picture yourself as a nonsmoker. This will keep you focused on your goal!",
+                "Practice ways to relax, so stress doesn't catch you by surprise.",
+                "Try to stay away from people when they're smoking. Or use things like straws, and sugarless candy/gum to keep from lighting up with them.",
+                "Think of yourself as a nonsmoker as you quit. Smoking is no longer and option.",
+                "Keep your reasons for quitting strong in you mind.",
+                "If quitting smoking gets tough, ask for support from those who care about you.",
+                "Some triggers can catch people off guard, like being around smokers, drinking alcohol, and unexpected emotional events. Have a plan in place to deal with these things without a cigarette!"
+            ],
+            "entity": "interview_and_agent",
+            "structure": "{entity_interview}List the daily SMS message(s) that you have received.\n\n{entity_agent}I have received the following message: \"{formats}\"",
+            "require_response": false
+        },
+        "FREQ_interactive_messaging_interview": {
+            "freq": "00-00-01",
+            "except": ["00-00-00"],
+            "begins_at": "00-00-01",
+            "ends_at": "99-99-99",
+            "formats": [
+                "Have you sent us a message with <CRAVE>? Please respond with 'yes' or 'no'."
+            ],
+            "entity": "interview",
+            "require_response": true,
+            "critic_fn": ["evaluate_narrative", "respond_with_yes_no"],
+            "set_env": [["sent_interactive", true]]
+        },
+        "COND_interactive_messaging": {
+            "trigger": "sent_interactive",
+            "formats": [
+                "Cravings last less than 5 minutes on average. To help distract yourself, try sipping a drink slowly until the craving is over."
+            ],
+            "entity": "interview_and_agent",
+            "structure": "{entity_interview}Please tell us the reply you received from the CARVE message.\n\n{entity_agent}I have received the following reply: \"{formats}\"",
+            "require_response": false,
+            "set_env": [["sent_interactive", false]]
+        },
+        "FREQ_interview": {
+            "freq": "00-00-01",
+            "except": ["00-00-00"],
+            "begins_at": "00-00-01",
+            "ends_at": "99-99-99",
+            "formats": [
+                "It's time for your daily check-in: Did you smoke any cigarettes today? If so, how many cigarettes did you smoke? What triggered any urges or cravings? How did you cope with them? Please reply with details about your day."
+            ],
+            "entity": "interview",
+            "require_response": true,
+            "critic_fn": ["evaluate_narrative", "check_n_smoked"]
+        }
+    }
+}

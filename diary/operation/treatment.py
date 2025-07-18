@@ -5,9 +5,13 @@ from omegaconf import DictConfig
 from diary.entity.history import Event, History
 from diary.entity.intervention import Intervention
 from diary.llm_engine.llm_engine import LLMEngine
-from diary.utils.flexible_critic import evaluate_narrative, check_n_smoked
+from diary.utils.flexible_critic import (
+    evaluate_narrative,
+    check_n_smoked,
+    respond_with_yes_no
+)
 from diary.utils.misc_utils import clean_format_chat
-from .system_prompt import SYSPROMPT_TABLE
+from diary.utils.system_prompt import SYSPROMPT_TABLE
 
 def run_intervention(
     intervention: Intervention,
@@ -74,6 +78,22 @@ def run_intervention(
                 "usage": c_usage,
             })
             if output is None:
+                metadata["retry"] += 1
+                n_trial += 1
+                continue
+
+        if "respond_with_yes_no" in critic_fn:
+            c_prompt, c_usage, output = respond_with_yes_no(
+                engine=critic_engine,
+                context=continuation_prompt,
+                rollout=response,
+            )
+            metadata["critic_history"].append({
+                "prompts": c_prompt,
+                "pass": False if output is None else output.strip().lower(),
+                "usage": c_usage,
+            })
+            if output is None or output.strip().lower() not in ["yes", "no"]:
                 metadata["retry"] += 1
                 n_trial += 1
                 continue

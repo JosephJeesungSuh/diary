@@ -5,7 +5,7 @@ from omegaconf import DictConfig
 from diary.entity.history import Event, History
 from diary.llm_engine.llm_engine import LLMEngine
 from diary.utils.flexible_critic import evaluate_narrative
-from .system_prompt import SYSPROMPT_TABLE
+from diary.utils.system_prompt import SYSPROMPT_TABLE
 
 def generate_narrative(
     history: History,
