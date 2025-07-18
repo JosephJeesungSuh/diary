@@ -15,7 +15,8 @@ def generate_critic_prompt(context: Any,
                            purpose: Literal[
                                "evaluate_narrative",
                                "parse_identity_survey",
-                               "check_n_smoked"],
+                               "check_n_smoked",
+                               "respond_with_yes_no"],
                            entity: List[str]) -> List[List[Dict[str, str]]]:
     assert purpose in CRITIC_PROMPT, (
         "invalid purpose for calling critic model. "
@@ -64,6 +65,17 @@ def generate_critic_prompt(context: Any,
         return critic_prompts
     
     elif purpose == "check_n_smoked":
+        critic_prompts = [
+            {"role": "user", "content": (
+                CRITIC_PROMPT[purpose]['context'].format(
+                    question_body=context,
+                    response=rollout
+                )
+            )}
+        ]
+        return critic_prompts
+    
+    elif purpose == "respond_with_yes_no":
         critic_prompts = [
             {"role": "user", "content": (
                 CRITIC_PROMPT[purpose]['context'].format(
@@ -142,6 +154,28 @@ def check_n_smoked(engine: LLMEngine,
         rollout=rollout,
         review_criterion=[],
         purpose="check_n_smoked",
+        entity=[],
+    )
+    critic_run = engine.prompt_llm_chat(critic_prompt)
+    output = critic_run.choices[0].message.content.strip()
+    critic_usage = tuple([
+        critic_run.usage.prompt_tokens,
+        critic_run.usage.completion_tokens,
+        critic_run.usage.total_tokens,
+    ])
+    return (
+        critic_prompt,
+        critic_usage,
+        output if output.strip().lower() != '[n/a]' else None
+    )
+
+def respond_with_yes_no(engine: LLMEngine,
+                        context: str, rollout: str) -> Tuple:
+    critic_prompt: List[Dict[str, str]] = generate_critic_prompt(
+        context=context,
+        rollout=rollout,
+        review_criterion=[],
+        purpose="respond_with_yes_no",
         entity=[],
     )
     critic_run = engine.prompt_llm_chat(critic_prompt)
