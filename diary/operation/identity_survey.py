@@ -25,9 +25,6 @@ def query_identity(
         client_cfg = copy.deepcopy(copied_engine.client)
         assert client_cfg.pop("incompletereason", None) == "async"
         copied_engine.client = AsyncOpenAI(**client_cfg)
-        return query_identity(
-            history, query, response_engine, copied_engine, **kwargs
-        )
 
     qkey: str = query["qkey"]
     question: str = query["question_body"]

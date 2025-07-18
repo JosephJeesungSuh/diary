@@ -129,7 +129,6 @@ class Agent:
                 )
                 self.update_identity(new_attribute)
                 self.update_history(event)
-            import pdb; pdb.set_trace()
         elif op == "treatment":
             """
             Semantics of treatment rollout:

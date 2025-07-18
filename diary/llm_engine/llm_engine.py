@@ -5,7 +5,7 @@ import logging
 from typing import Dict, List
 
 from omegaconf import DictConfig
-from openai import AuthenticationError, BadRequestError, OpenAI
+from openai import AuthenticationError, BadRequestError, OpenAI, AsyncOpenAI
 
 from .llm_table import LLMS
 from .backoff import retry_with_exponential_backoff
@@ -135,4 +135,7 @@ class LLMEngine:
             asyncio.create_task(_single(messages))
             for messages in messages_list
         ]
-        return await asyncio.gather(*tasks)
+        results = await asyncio.gather(*tasks)
+        if isinstance(self.client, AsyncOpenAI):
+            await self.client.close()
+        return results
